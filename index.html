@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Buzzer</title>
+    <!-- Fully qualified production CDNs -->
     <script src="jsdelivr.net"></script>
-    <script src="tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('googleapis.com');
         body { font-family: 'Inter', sans-serif; background-color: #0b0b0b; color: #f5f5f5; }
@@ -14,9 +15,17 @@
 <body class="flex flex-col items-center justify-center min-h-screen p-4 select-none">
 
     <script>
-        const SUPABASE_URL = "https://wfpqmyfhbwqszdzfjvbl.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmcHFteWZoYndxc3pkemZqdmJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MjgwNjEsImV4cCI6MjA5NDMwNDA2MX0.bm1xlejZwhtvGL-CzdozL9yaw3iksaTbe8l1re2vrCg";
-        const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // CONFIGURATION
+        const SUPABASE_URL = "supabase.co";
+        const SUPABASE_ANON_KEY = "PASTE_YOUR_LONG_ANON_KEY_HERE"; // Ensure no spaces exist here
+
+        // Secure Initialization Catch
+        let supabase;
+        try {
+            supabase = window.Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch(e) {
+            alert("Database Connection Library Failed: " + e.message);
+        }
 
         let currentRoom = "";
         let currentUsername = "";
@@ -72,27 +81,31 @@
 
     <script>
         async function joinGame(asAdmin) {
-            const roomInput = document.getElementById('room-input').value.trim().toUpperCase();
-            const usernameInput = document.getElementById('username-input').value.trim();
+            try {
+                const roomInput = document.getElementById('room-input').value.trim().toUpperCase();
+                const usernameInput = document.getElementById('username-input').value.trim();
 
-            if (!roomInput) return alert("Please enter a Room Code");
-            if (!asAdmin && !usernameInput) return alert("Please enter a Username");
+                if (!roomInput) return alert("Please enter a Room Code");
+                if (!asAdmin && !usernameInput) return alert("Please enter a Username");
 
-            currentRoom = roomInput;
-            currentUsername = asAdmin ? "Admin" : usernameInput;
-            isAdmin = asAdmin;
+                currentRoom = roomInput;
+                currentUsername = asAdmin ? "Admin" : usernameInput;
+                isAdmin = asAdmin;
 
-            if (isAdmin) {
-                await supabase.from('rooms').upsert({ id: currentRoom });
-                document.getElementById('admin-room-display').innerText = currentRoom;
-                switchScreen('landing-screen', 'admin-screen');
-                listenToRoomUpdates();
-                fetchCurrentBuzzes();
-            } else {
-                document.getElementById('player-room-display').innerText = currentRoom;
-                document.getElementById('player-name-display').innerText = currentUsername;
-                switchScreen('landing-screen', 'player-screen');
-                listenToRoomUpdates();
+                if (isAdmin) {
+                    await supabase.from('rooms').upsert({ id: currentRoom });
+                    document.getElementById('admin-room-display').innerText = currentRoom;
+                    switchScreen('landing-screen', 'admin-screen');
+                    listenToRoomUpdates();
+                    fetchCurrentBuzzes();
+                } else {
+                    document.getElementById('player-room-display').innerText = currentRoom;
+                    document.getElementById('player-name-display').innerText = currentUsername;
+                    switchScreen('landing-screen', 'player-screen');
+                    listenToRoomUpdates();
+                }
+            } catch(err) {
+                alert("Navigation Error: " + err.message);
             }
         }
 
@@ -126,7 +139,7 @@
             
             if(error) {
                 buzzerEnabled = true;
-                alert("Transmission failed, try again.");
+                alert("Database insertion rejected: " + error.message);
             }
         }
 
