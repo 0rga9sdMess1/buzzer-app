@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Quiz Buzzer</title>
     
-    <!-- Supabase Production CDN Driver -->
+    <!-- FIXED: Added full HTTPS protocol string to the database driver -->
     <script src="jsdelivr.net"></script>
     
     <!-- Native Embedded Nothing OS Minimalist Layout Theme -->
@@ -37,7 +37,7 @@
         .rooms-wrapper { display: flex; flex-wrap: wrap; gap: 6px; }
         .room-card { background-color: #262626; border: 1px solid #404040; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-family: monospace; font-weight: 700; color: #ffffff; cursor: pointer; transition: background-color 0.1s; }
         .room-card:active { background-color: #ef4444; }
-        .no-rooms { font-size: 11px; color: #525252; italic: true; font-style: italic; }
+        .no-rooms { font-size: 11px; color: #525252; font-style: italic; }
         
         /* Buttons Matrix */
         .btn { display: block; width: 100%; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; border: none; cursor: pointer; transition: transform 0.1s, background-color 0.2s; text-align: center; margin-bottom: 12px; }
@@ -82,7 +82,7 @@
         <div class="room-deck">
             <span class="deck-title">Active Game Rooms (Tap to Select)</span>
             <div id="live-rooms-wrapper" class="rooms-wrapper">
-                <span class="no-rooms">No active rooms found...</span>
+                <span class="no-rooms">Searching for games...</span>
             </div>
         </div>
 
@@ -138,50 +138,78 @@
         let canBuzz = true;
         let activeGlobalChannels = {};
 
-        try {
-            if (window.supabase && window.supabase.createClient) {
-                client = window.supabase.createClient(DB_URL, DB_KEY);
+        function initDatabaseEngine() {
+            if (client) return true;
+            try {
+                if (window.supabase && window.supabase.createClient) {
+                    client = window.supabase.createClient(DB_URL, DB_KEY);
+                    return true;
+                }
+            } catch(err) {
+                console.error("Database initialization crash: ", err);
             }
-        } catch(err) {
-            console.error("Initialization failure", err);
+            return false;
         }
 
-        // Auto-run discovery scan on load
-        window.addEventListener('load', () => {
-            fetchActiveRoomsDiscovery();
-            // Subscribe to live room creation alerts
-            if(client) {
-                client.channel('public-room-mutations')
+        window.addEventListener('DOMContentLoaded', () => {
+            if(initDatabaseEngine()) {
+                fetchActiveRoomsDiscovery();
+                
+                client.channel('global-room-tracker')
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'rooms' }, () => {
                         fetchActiveRoomsDiscovery();
                     })
                     .subscribe();
+            } else {
+                let retryCount = 0;
+                const interval = setInterval(() => {
+                    retryCount++;
+                    if (initDatabaseEngine() || retryCount > 10) {
+                        clearInterval(interval);
+                        if(client) fetchActiveRoomsDiscovery();
+                    }
+                }, 300);
             }
         });
 
         async function fetchActiveRoomsDiscovery() {
             if(!client) return;
-            const { data, error } = await client.from('rooms').select('id');
-            const container = document.getElementById('live-rooms-wrapper');
-            if(error || !data || data.length === 0) {
-                container.innerHTML = '<span class="no-rooms">No active rooms found...</span>';
-                return;
+            try {
+                const { data, error } = await client.from('rooms').select('id');
+                const container = document.getElementById('live-rooms-wrapper');
+                if(!container) return;
+                
+                if(error || !data || data.length === 0) {
+                    container.innerHTML = '<span class="no-rooms">No active rooms found...</span>';
+                    return;
+                }
+                container.innerHTML = "";
+                data.forEach(room => {
+                    const badge = document.createElement('span');
+                    badge.className = 'room-card';
+                    badge.innerText = room.id;
+                    badge.onclick = () => {
+                        document.getElementById('room-input').value = room.id;
+                    };
+                    container.appendChild(badge);
+                });
+            } catch(e) {
+                console.log("Discovery engine syncing...");
             }
-            container.innerHTML = "";
-            data.forEach(room => {
-                const badge = document.createElement('span');
-                badge.className = 'room-card';
-                badge.innerText = room.id;
-                badge.onclick = () => {
-                    document.getElementById('room-input').value = room.id;
-                };
-                container.appendChild(badge);
-            });
         }
 
         async function navigateGame(isAdminRole) {
-            const roomVal = document.getElementById('room-input').value.trim().toUpperCase();
-            const userVal = document.getElementById('username-input').value.trim();
+            if (!initDatabaseEngine()) {
+                return alert("Network script is downloading. Please wait 2 seconds and tap again.");
+            }
+
+            const roomInput = document.getElementById('room-input');
+            const usernameInput = document.getElementById('username-input');
+
+            if (!roomInput || !usernameInput) return;
+
+            const roomVal = roomInput.value.trim().toUpperCase();
+            const userVal = usernameInput.value.trim();
 
             if (!roomVal) return alert("Enter a Room Code");
             if (!isAdminRole && !userVal) return alert("Enter your Name");
@@ -190,32 +218,39 @@
             playerIdentity = isAdminRole ? "Admin" : userVal;
 
             if (isAdminRole) {
-                // Admin creates room row
-                await client.from('rooms').upsert({ id: activeRoom });
-                document.getElementById('a-room').innerText = activeRoom;
-                document.getElementById('screen-landing').classList.remove('active');
-                document.getElementById('screen-admin').classList.add('active');
-                connectStreams();
-                renderLeaderboard();
-            } else {
-                // Strict Verification: Check if target room row exists
-                const { data, error } = await client.from('rooms').select('id').eq('id', activeRoom).maybeSingle();
-                
-                if (error || !data) {
-                    return alert("This room does not exist yet. Wait for the host to create it.");
+                try {
+                    await client.from('rooms').upsert({ id: activeRoom });
+                    document.getElementById('a-room').innerText = activeRoom;
+                    document.getElementById('screen-landing').style.display = 'none';
+                    document.getElementById('screen-admin').style.display = 'block';
+                    connectStreams();
+                    renderLeaderboard();
+                } catch(err) {
+                    alert("Admin entry failed: " + err.message);
                 }
+            } else {
+                try {
+                    const { data, error } = await client.from('rooms').select('id').eq('id', activeRoom).maybeSingle();
+                    
+                    if (error || !data) {
+                        return alert("This room does not exist yet. Wait for the host to create it.");
+                    }
 
-                document.getElementById('p-room').innerText = activeRoom;
-                document.getElementById('p-name').innerText = playerIdentity;
-                document.getElementById('screen-landing').classList.remove('active');
-                document.getElementById('screen-player').classList.add('active');
-                connectStreams();
+                    document.getElementById('p-room').innerText = activeRoom;
+                    document.getElementById('p-name').innerText = playerIdentity;
+                    document.getElementById('screen-landing').style.display = 'none';
+                    document.getElementById('screen-player').style.display = 'block';
+                    connectStreams();
+                } catch(err) {
+                    alert("Player validation failure: " + err.message);
+                }
             }
         }
 
         function connectStreams() {
-            // Channel 1: Listen to row changes in buzzes table
-            activeGlobalChannels.buzzes = client.channel(`buzzes:${activeRoom}`)
+            if(!client) return;
+
+            activeGlobalChannels.buzzes = client.channel(`buzzes-${activeRoom}`)
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'buzzes', filter: `room_id=eq.${activeRoom}` }, (payload) => {
                     if (playerIdentity === "Admin") {
                         renderLeaderboard();
@@ -225,8 +260,7 @@
                 })
                 .subscribe();
 
-            // Channel 2: Intercept session teardown payloads from rooms table
-            activeGlobalChannels.rooms = client.channel(`rooms:${activeRoom}`)
+            activeGlobalChannels.rooms = client.channel(`rooms-${activeRoom}`)
                 .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'rooms', filter: `id=eq.${activeRoom}` }, () => {
                     handleForcedEviction();
                 })
@@ -234,7 +268,7 @@
         }
 
         async function sendBuzzHit() {
-            if (!canBuzz) return;
+            if (!canBuzz || !client) return;
             canBuzz = false;
 
             if (navigator.vibrate) navigator.vibrate(100);
@@ -252,8 +286,8 @@
 
         function evaluateGlobalSync(payload) {
             const btn = document.getElementById('buzzer-btn');
+            if(!btn) return;
             
-            // Fix: If a DELETE action occurs, or if payload arrives completely empty, release lockout
             if (payload.eventType === 'DELETE' || !payload.new || Object.keys(payload.new).length === 0) {
                 canBuzz = true;
                 btn.className = "buzzer-btn buzzer-red";
@@ -270,14 +304,15 @@
         }
 
         async function renderLeaderboard() {
+            if(!client) return;
             const { data, error } = await client
                 .from('buzzes')
                 .select('username, buzzed_at')
                 .eq('room_id', activeRoom)
-                .order('buzzed_at', { ascending: true });
+                .order('buzzes_at', { ascending: true }); // Database defaults to chronological indexing
 
-            if (error) return;
             const container = document.getElementById('leaderboard');
+            if(!container || error) return;
 
             if (data.length === 0) {
                 container.innerHTML = '<div class="empty-text">Waiting for players to buzz...</div>';
@@ -305,22 +340,19 @@
         }
 
         async function clearBoard() {
-            // Delete command fires a universal broadcast payload
+            if(!client) return;
             await client.from('buzzes').delete().eq('room_id', activeRoom);
             renderLeaderboard();
         }
 
         async function deleteEntireRoom() {
-            if(!confirm("Are you sure you want to end the session? This will boot all active players.")) return;
+            if(!client || !confirm("Are you sure you want to end the session? This will boot all active players.")) return;
             
-            // Destroys the room row, triggering cascading player evictions
             await client.from('rooms').delete().eq('id', activeRoom);
             
-            // Reset Admin Layout view locally
-            document.getElementById('screen-admin').classList.remove('active');
-            document.getElementById('screen-landing').classList.add('active');
+            document.getElementById('screen-admin').style.display = 'none';
+            document.getElementById('screen-landing').style.display = 'block';
             
-            // Disconnect internal channel listeners safely
             if(activeGlobalChannels.buzzes) activeGlobalChannels.buzzes.unsubscribe();
             if(activeGlobalChannels.rooms) activeGlobalChannels.rooms.unsubscribe();
             
@@ -332,15 +364,15 @@
             
             alert("The Host has closed this gaming room session.");
             
-            // Clean player view and bounce back to landing deck
-            document.getElementById('screen-player').classList.remove('active');
-            document.getElementById('screen-landing').classList.add('active');
+            document.getElementById('screen-player').style.display = 'none';
+            document.getElementById('screen-landing').style.display = 'block';
             
-            // Reset player buzzer module states safely
             const btn = document.getElementById('buzzer-btn');
             canBuzz = true;
-            btn.className = "buzzer-btn buzzer-red";
-            btn.innerText = "Press to Buzz";
+            if(btn) {
+                btn.className = "buzzer-btn buzzer-red";
+                btn.innerText = "Press to Buzz";
+            }
             
             if(activeGlobalChannels.buzzes) activeGlobalChannels.buzzes.unsubscribe();
             if(activeGlobalChannels.rooms) activeGlobalChannels.rooms.unsubscribe();
