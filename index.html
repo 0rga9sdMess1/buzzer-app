@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Buzzer</title>
-   <!-- Bulletproof Cloudflare and Unpkg Fallback Links -->
-    <script src="cloudflare.com" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="jsdelivr.net"></script>
+    <!-- Fully qualified Tailwind CSS engine for the dark-mode layout -->
     <script src="tailwindcss.com"></script>
     <style>
         @import url('googleapis.com');
@@ -15,24 +13,29 @@
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-4 select-none">
 
+    <!-- Global Application State Shell -->
     <script>
-        // CONFIGURATION
-        const SUPABASE_URL = "https://wfpqmyfhbwqszdzfjvbl.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmcHFteWZoYndxc3pkemZqdmJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MjgwNjEsImV4cCI6MjA5NDMwNDA2MX0.bm1xlejZwhtvGL-CzdozL9yaw3iksaTbe8l1re2vrCg"; // Ensure no spaces exist here
-
-        // Secure Initialization Catch
-        let supabase;
-        try {
-            supabase = window.Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        } catch(e) {
-            alert("Database Connection Library Failed: " + e.message);
-        }
-
         let currentRoom = "";
         let currentUsername = "";
         let isAdmin = false;
         let buzzerEnabled = true;
         let supabaseSubscription = null;
+        let supabaseClientInstance = null;
+    </script>
+
+    <!-- Modern ES Module Initialization Engine -->
+    <script type="module">
+        import { createClient } from 'jsdelivr.net';
+        
+        const SUPABASE_URL = "https://wfpqmyfhbwqszdzfjvbl.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmcHFteWZoYndxc3pkemZqdmJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MjgwNjEsImV4cCI6MjA5NDMwNDA2MX0.bm1xlejZwhtvGL-CzdozL9yaw3iksaTbe8l1re2vrCg";
+
+        try {
+            supabaseClientInstance = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            console.log("Supabase connected cleanly.");
+        } catch(e) {
+            alert("ES Module Client Init Failed: " + e.message);
+        }
     </script>
 
     <!-- 1. LANDING SCREEN -->
@@ -80,33 +83,32 @@
         </div>
     </div>
 
+    <!-- INTERACTION CONTROLLERS -->
     <script>
         async function joinGame(asAdmin) {
-            try {
-                const roomInput = document.getElementById('room-input').value.trim().toUpperCase();
-                const usernameInput = document.getElementById('username-input').value.trim();
+            if(!supabaseClientInstance) return alert("Database is initializing. Please wait a second and tap again.");
+            
+            const roomInput = document.getElementById('room-input').value.trim().toUpperCase();
+            const usernameInput = document.getElementById('username-input').value.trim();
 
-                if (!roomInput) return alert("Please enter a Room Code");
-                if (!asAdmin && !usernameInput) return alert("Please enter a Username");
+            if (!roomInput) return alert("Please enter a Room Code");
+            if (!asAdmin && !usernameInput) return alert("Please enter a Username");
 
-                currentRoom = roomInput;
-                currentUsername = asAdmin ? "Admin" : usernameInput;
-                isAdmin = asAdmin;
+            currentRoom = roomInput;
+            currentUsername = asAdmin ? "Admin" : usernameInput;
+            isAdmin = asAdmin;
 
-                if (isAdmin) {
-                    await supabase.from('rooms').upsert({ id: currentRoom });
-                    document.getElementById('admin-room-display').innerText = currentRoom;
-                    switchScreen('landing-screen', 'admin-screen');
-                    listenToRoomUpdates();
-                    fetchCurrentBuzzes();
-                } else {
-                    document.getElementById('player-room-display').innerText = currentRoom;
-                    document.getElementById('player-name-display').innerText = currentUsername;
-                    switchScreen('landing-screen', 'player-screen');
-                    listenToRoomUpdates();
-                }
-            } catch(err) {
-                alert("Navigation Error: " + err.message);
+            if (isAdmin) {
+                await supabaseClientInstance.from('rooms').upsert({ id: currentRoom });
+                document.getElementById('admin-room-display').innerText = currentRoom;
+                switchScreen('landing-screen', 'admin-screen');
+                listenToRoomUpdates();
+                fetchCurrentBuzzes();
+            } else {
+                document.getElementById('player-room-display').innerText = currentRoom;
+                document.getElementById('player-name-display').innerText = currentUsername;
+                switchScreen('landing-screen', 'player-screen');
+                listenToRoomUpdates();
             }
         }
 
@@ -116,7 +118,7 @@
         }
 
         function listenToRoomUpdates() {
-            supabaseSubscription = supabase.channel(`room:${currentRoom}`)
+            supabaseSubscription = supabaseClientInstance.channel(`room:${currentRoom}`)
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'buzzes', filter: `room_id=eq.${currentRoom}` }, (payload) => {
                     if (isAdmin) {
                         fetchCurrentBuzzes();
@@ -133,14 +135,14 @@
 
             if (navigator.vibrate) navigator.vibrate(100);
 
-            const { error } = await supabase.from('buzzes').insert({
+            const { error } = await supabaseClientInstance.from('buzzes').insert({
                 room_id: currentRoom,
                 username: currentUsername
             });
             
             if(error) {
                 buzzerEnabled = true;
-                alert("Database insertion rejected: " + error.message);
+                alert("Buzzer Error: " + error.message);
             }
         }
 
@@ -160,7 +162,7 @@
         }
 
         async function fetchCurrentBuzzes() {
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClientInstance
                 .from('buzzes')
                 .select('username, buzzed_at')
                 .eq('room_id', currentRoom)
@@ -200,7 +202,7 @@
         }
 
         async function resetBuzzer() {
-            await supabase.from('buzzes').delete().eq('room_id', currentRoom);
+            await supabaseClientInstance.from('buzzes').delete().eq('room_id', currentRoom);
             fetchCurrentBuzzes();
         }
     </script>
