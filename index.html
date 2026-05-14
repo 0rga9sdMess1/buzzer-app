@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Quiz Buzzer</title>
     
-    <!-- Fully Quantified, High-Speed Supabase CDN Database Driver -->
+    <!-- FIXED LINE 7: Fully quantified standalone production UMD bundle driver link -->
     <script src="jsdelivr.net"></script>
     
     <!-- Native Embedded Nothing OS Minimalist Layout Theme -->
@@ -129,8 +129,8 @@
 
     <!-- CORE INTERACTION MECHANICS -->
     <script>
-        // FIXED LINE 210: Full origin web path quantified to fix WebSocket handshake failure
-        const DB_URL = "supabase.co";
+        // FIXED LINE 210: Clean variable layout without copying hidden trailing characters
+        const DB_URL = "https://wfpqmyfhbwqszdzfjvbl.supabase.co";
         const DB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmcHFteWZoYndxc3pkemZqdmJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MjgwNjEsImV4cCI6MjA5NDMwNDA2MX0.bm1xlejZwhtvGL-CzdozL9yaw3iksaTbe8l1re2vrCg";
         
         let client = null;
@@ -142,35 +142,34 @@
         function initDatabaseEngine() {
             if (client) return true;
             try {
-                if (window.supabase && window.supabase.createClient) {
-                    client = window.supabase.createClient(DB_URL, DB_KEY);
+                // FIXED: Explicit global object instance assignment signature
+                const targetScope = window.supabase || supabase;
+                if (targetScope && targetScope.createClient) {
+                    client = targetScope.createClient(DB_URL, DB_KEY);
                     return true;
                 }
             } catch(err) {
-                console.error("Database initialization crash: ", err);
+                console.error("Database compilation exception: ", err);
             }
             return false;
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            if(initDatabaseEngine()) {
-                fetchActiveRoomsDiscovery();
-                
-                client.channel('global-room-tracker')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'rooms' }, () => {
+            let attempts = 0;
+            const bootInterval = setInterval(() => {
+                attempts++;
+                if (initDatabaseEngine() || attempts > 15) {
+                    clearInterval(bootInterval);
+                    if(client) {
                         fetchActiveRoomsDiscovery();
-                    })
-                    .subscribe();
-            } else {
-                let retryCount = 0;
-                const interval = setInterval(() => {
-                    retryCount++;
-                    if (initDatabaseEngine() || retryCount > 10) {
-                        clearInterval(interval);
-                        if(client) fetchActiveRoomsDiscovery();
+                        client.channel('global-room-tracker')
+                            .on('postgres_changes', { event: '*', schema: 'public', table: 'rooms' }, () => {
+                                fetchActiveRoomsDiscovery();
+                            })
+                            .subscribe();
                     }
-                }, 300);
-            }
+                }
+            }, 200);
         });
 
         async function fetchActiveRoomsDiscovery() {
@@ -195,7 +194,7 @@
                     container.appendChild(badge);
                 });
             } catch(e) {
-                console.log("Discovery engine syncing...");
+                console.log("Discovery scanning payload pending...");
             }
         }
 
@@ -310,7 +309,7 @@
                 .from('buzzes')
                 .select('username, buzzed_at')
                 .eq('room_id', activeRoom)
-                .order('buzzed_at', { ascending: true }); // FIXED LINE 317: Clean sorting target reference
+                .order('buzzed_at', { ascending: true }); // FIXED LINE 317: Standard table property key mapping
 
             const container = document.getElementById('leaderboard');
             if(!container || error) return;
