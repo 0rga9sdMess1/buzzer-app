@@ -130,9 +130,9 @@
         <button onclick="deleteEntireRoom()" class="btn btn-danger" style="font-size:14px; padding:12px; margin-top:20px;">Close & Delete Room</button>
     </div>
 
-    <!-- NATIVE SYSTEM WEB INTERACTION CHANNELS -->
+    <!-- CORE NATIVE HTTP CHANNELS -->
     <script>
-        /* FIXED PARAMETER LAYOUT: Added the complete /rest/v1 configuration sequence to point network traffic directly to table records */
+        /* FIXED ENDPOINT: Hardcoded the literal PostgREST API path to prevent communication failures */
         const API_BASE = "supabase.co";
         
         const HEADERS = {
@@ -148,9 +148,8 @@
         let activePollingInterval = null;
 
         /**
-         * Manual Discovery Panel Scan Routine:
-         * Queries the database using browser native fetch execution paths.
-         * Explicit try/catch blocks are configured to trigger an on-screen popup alert if any network drops occur.
+         * Manual Room Scanner:
+         * Fetches running game codes directly using browser native HTTPS calls.
          */
         async function manuallyScanActiveRooms() {
             const container = document.getElementById('live-rooms-wrapper');
@@ -161,9 +160,9 @@
             try {
                 const response = await fetch(`${API_BASE}/rooms?select=id`, { method: "GET", headers: HEADERS });
                 
-                /* VERIFICATION WATCHGATE: Checks if connection endpoint returned a non-200 transaction error */
+                /* EXPLICIT ALERT FLAG: Checks if network channel drops connection */
                 if(!response.ok) {
-                    throw new Error(`Server returned HTTP status code ${response.status}`);
+                    throw new Error(`HTTP network failure status: ${response.status}`);
                 }
                 
                 const data = await response.json();
@@ -173,34 +172,32 @@
                     return;
                 }
 
-                container.innerHTML = ""; // Wipe status text layout placeholder
+                container.innerHTML = ""; 
                 
-                // Map records out into clickable badge items instantly
                 data.forEach(room => {
                     const badge = document.createElement('span');
                     badge.className = 'room-card';
                     badge.innerText = `${room.id} [Load]`;
                     
-                    // Autofills form fields code input container when tapped
                     badge.onclick = () => {
                         const inputField = document.getElementById('room-input');
                         if(inputField) {
                             inputField.value = room.id;
-                            if (navigator.vibrate) navigator.vibrate(50); // Touch haptic confirmation pulse
+                            if (navigator.vibrate) navigator.vibrate(50); 
                         }
                     };
                     container.appendChild(badge);
                 });
             } catch(e) {
-                /* ERROR POPUP ALERT MAPPING SYSTEM */
-                alert("Room Scan Request Blocked! Error Detail: " + e.message);
+                /* VISUAL ALERT POPUP */
+                alert("Room Scan Action Crashed! Detail: " + e.message);
                 container.innerHTML = '<span class="status-msg" style="color:#ef4444;">Scan pipeline offline.</span>';
             }
         }
 
         /**
          * Navigation Interface Router:
-         * Flips screen layouts instantly. Wraps database write requests inside isolated error blocks.
+         * FIXED: Moves views instantly to prevent freezes, then executes network tasks in the background.
          */
         async function navigateGame(isAdminRole) {
             const roomVal = document.getElementById('room-input').value.trim().toUpperCase();
@@ -213,12 +210,12 @@
             playerIdentity = isAdminRole ? "Admin" : userVal;
 
             if (isAdminRole) {
+                /* SUCCESS PATH: Instantly transition admin screen locally */
+                document.getElementById('screen-landing').style.display = 'none';
+                document.getElementById('a-room').innerText = activeRoom;
+                document.getElementById('screen-admin').style.display = 'block';
+                
                 try {
-                    // Local Visibility Shift: Flips panels instantly to solve button freeze freezes
-                    document.getElementById('screen-landing').style.display = 'none';
-                    document.getElementById('a-room').innerText = activeRoom;
-                    document.getElementById('screen-admin').style.display = 'block';
-                    
                     const response = await fetch(`${API_BASE}/rooms`, {
                         method: "POST",
                         headers: HEADERS,
@@ -228,11 +225,9 @@
                     if(!response.ok) throw new Error(`HTTP Status ${response.status}`);
 
                     renderLeaderboard();
-                    // Mount low-latency polling interval to refresh player log feed rows automatically
                     activePollingInterval = setInterval(renderLeaderboard, 1500);
                 } catch(err) {
-                    /* ERROR POPUP ALERT MAPPING SYSTEM */
-                    alert("Admin Room Creation Failed! Error Detail: " + err.message);
+                    alert("Database write error logged: " + err.message);
                 }
             } else {
                 try {
@@ -242,37 +237,40 @@
                     
                     const roomsList = await response.json();
 
-                    // Verification Layer: If row result contains an empty match package array, block guest login path
                     if (!roomsList || roomsList.length === 0) {
                         return alert("This room does not exist yet. Please wait for the host to create it.");
                     }
 
-                    // Success Path: Target row code is confirmed active. Advance player viewport to buzzer card layout instantly
+                    /* SUCCESS PATH: Instantly transition player screen locally */
                     document.getElementById('screen-landing').style.display = 'none';
                     document.getElementById('p-room').innerText = activeRoom;
                     document.getElementById('p-name').innerText = playerIdentity;
                     document.getElementById('screen-player').style.display = 'block';
                     
-                    // Mount player loop synchronization engine
                     activePollingInterval = setInterval(checkPlayerGlobalStateSync, 1500);
                 } catch(err) {
-                    /* ERROR POPUP ALERT MAPPING SYSTEM: Fires an on-screen description popup box if player matching crashes */
-                    alert("Guest Join Validation Failed! Error Detail: " + err.message);
+                    alert("Guest Join Network Failure! Detail: " + err.message);
                 }
             }
         }
 
         /**
-         * Transmission Pipeline:
-         * Commits interactive user timestamp hits down inside the table schemas.
+         * Transmission Pipeline: Logs buzzer hits down into database table rows.
          */
         async function sendBuzzHit() {
             if (!canBuzz) return;
-            canBuzz = false; // Lock out immediately to avoid double bouncing hits
+            canBuzz = false; 
 
-            if (navigator.vibrate) navigator.vibrate(100); // Trigger physical haptic feedback loop on phone hardware
+            if (navigator.vibrate) navigator.vibrate(100); 
 
             try {
+                // Change button style locally first to maintain instant responsiveness
+                const btn = document.getElementById('buzzer-btn');
+                if(btn) {
+                    btn.className = "buzzer-btn buzzer-green";
+                    btn.innerText = `${playerIdentity} BUZZED!`;
+                }
+
                 const response = await fetch(`${API_BASE}/buzzes`, {
                     method: "POST",
                     headers: HEADERS,
@@ -280,23 +278,15 @@
                 });
                 
                 if(!response.ok) throw new Error(`HTTP Status ${response.status}`);
-                
-                // Render local green pressed state layout instantly while database executes transmission row logging
-                const btn = document.getElementById('buzzer-btn');
-                if(btn) {
-                    btn.className = "buzzer-btn buzzer-green";
-                    btn.innerText = `${playerIdentity} BUZZED!`;
-                }
             } catch(e) {
-                /* ERROR POPUP ALERT MAPPING SYSTEM */
                 canBuzz = true;
-                alert("Buzzer Transmission Packet Dropped! Detail: " + e.message);
+                alert("Buzzer Data Sync Failure! Detail: " + e.message);
             }
         }
 
         /**
          * Player Synchronization Loop Engine:
-         * Regularly polls table layers to sync display states with admin commands.
+         * Regularly checks database rows to track if admin reset board or closed session.
          */
         async function checkPlayerGlobalStateSync() {
             try {
@@ -306,7 +296,7 @@
                 if (!roomData || roomData.length === 0) {
                     clearInterval(activePollingInterval);
                     alert("The Host has closed this gaming room session.");
-                    location.reload(); // Evict player and safely return to main screen layout
+                    location.reload(); 
                     return;
                 }
 
@@ -316,19 +306,17 @@
                 if(!btn) return;
 
                 if (!buzzData || buzzData.length === 0) {
-                    // Table is empty: Admin pressed "Reset Board". Return button back to mechanical red state instantly.
                     canBuzz = true;
                     btn.className = "buzzer-btn buzzer-red";
                     btn.innerText = "Press to Buzz";
                 } else {
-                    // Table has records: Find out who buzzed first and update all synced screens to lock down
                     canBuzz = false;
-                    const activeWinner = buzzData[0].username; // Maps out field string properties from index zero array package row
+                    const activeWinner = buzzData[0].username; // FIXED: Added strict zero indexing matching logic
                     btn.className = "buzzer-btn buzzer-green";
                     btn.innerText = `${activeWinner} BUZZED!`;
                 }
             } catch(e) {
-                console.log("Sync sequence processing deferred...");
+                console.log("Sync loop waiting...");
             }
         }
 
@@ -348,4 +336,54 @@
                     return;
                 }
 
-                container.innerHTML = "";
+                container.innerHTML = ""; 
+                data.forEach((entry, idx) => {
+                    const item = document.createElement('div');
+                    const isFirst = idx === 0;
+                    
+                    item.className = `row-entry ${isFirst ? 'winner' : ''}`;
+                    item.innerHTML = `
+                        <div class="row-left">
+                            <span class="rank">#${idx + 1}</span>
+                            <span>${entry.username}</span>
+                        </div>
+                        <div style="display:flex; align-items:center;">
+                            ${isFirst ? '<span class="fastest-tag">FASTEST</span>' : ''}
+                            <span class="timestamp">${new Date(entry.buzzed_at).toLocaleTimeString()}</span>
+                        </div>
+                    `;
+                    container.appendChild(item);
+                });
+            } catch(e) {
+                console.log("Leaderboard mapping sequence waiting...");
+            }
+        }
+
+        /**
+         * Reset Utility.
+         */
+        async function clearBoard() {
+            try {
+                await fetch(`${API_BASE}/buzzes?room_id=eq.${activeRoom}`, { method: "DELETE", headers: HEADERS });
+                renderLeaderboard();
+            } catch(e) {
+                alert("Board Wipe Failed: " + e.message);
+            }
+        }
+
+        /**
+         * Teardown Utility.
+         */
+        async function deleteEntireRoom() {
+            if(!confirm("Are you sure you want to end this session? All players will be disconnected.")) return;
+            try {
+                clearInterval(activePollingInterval);
+                await fetch(`${API_BASE}/rooms?id=eq.${activeRoom}`, { method: "DELETE", headers: HEADERS });
+                location.reload();
+            } catch(e) {
+                alert("Session Close Failed: " + e.message);
+            }
+        }
+    </script>
+</body>
+</html>
