@@ -1,222 +1,249 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Quiz Buzzer</title>
-    <!-- Explicit Production Tailwind CDN to fix the black & white style bug -->
-    <script src="tailwindcss.com"></script>
+    <!-- Native Supabase Mobile Client Driver -->
+    <script src="jsdelivr.net"></script>
+    
+    <!-- Embedded Custom Dark-Mode Stylesheet -->
     <style>
-        @import url('googleapis.com');
-        body { font-family: 'Inter', sans-serif; background-color: #0b0b0b; color: #f5f5f5; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #0b0b0b; color: #f5f5f5; min-h: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; overflow-x: hidden; }
+        
+        /* Layout Containers */
+        .screen { width: 100%; max-width: 400px; background-color: #161616; border: 1px solid #262626; border-radius: 24px; padding: 28px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); display: none; }
+        .screen.active { display: block; }
+        
+        /* Typography */
+        h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; text-align: center; margin-bottom: 32px; color: #ffffff; }
+        h1 span { color: #ef4444; }
+        h2 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+        .subtitle { font-size: 12px; color: #a3a3a3; font-family: monospace; text-transform: uppercase; margin-bottom: 16px; }
+        .section-title { font-size: 11px; font-weight: 600; color: #a3a3a3; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: block; }
+        
+        /* Forms and Inputs */
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-size: 11px; font-weight: 600; color: #a3a3a3; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        input { w-100: 100%; width: 100%; bg-color: #222; background-color: #222; border: 1px solid #333; border-radius: 12px; padding: 14px; color: #ffffff; font-size: 16px; transition: border-color 0.2s; }
+        input:focus { outline: none; border-color: #ef4444; }
+        input.uppercase { text-transform: uppercase; font-family: monospace; letter-spacing: 2px; }
+        
+        /* Action Buttons */
+        .btn { display: block; width: 100%; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; border: none; cursor: pointer; transition: transform 0.1s, background-color 0.2s; text-align: center; margin-bottom: 12px; }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background-color: #ffffff; color: #000000; }
+        .btn-secondary { background-color: #222222; color: #d4d4d4; border: 1px solid #333333; }
+        .btn-danger { background-color: #ef4444; color: #ffffff; }
+        
+        /* Meta Badges */
+        .meta-container { display: flex; gap: 12px; justify-content: center; margin-bottom: 24px; }
+        .badge { background-color: #222; border: 1px solid #333; padding: 6px 14px; rounded: 20px; border-radius: 20px; font-family: monospace; font-size: 12px; color: #a3a3a3; }
+        .badge strong { color: #ffffff; }
+        
+        /* The Giant 3D Buzz Button Component */
+        .buzzer-wrapper { display: flex; justify-content: center; align-items: center; height: 280px; }
+        .buzzer-btn { width: 200px; height: 200px; border-radius: 50%; font-size: 22px; font-weight: 800; text-transform: uppercase; border: none; color: #ffffff; cursor: pointer; transition: all 0.1s ease; outline: none; }
+        
+        .buzzer-red { background-color: #dc2626; border-bottom: 12px solid #991b1b; shadow: 0 15px 0 #991b1b; box-shadow: 0 12px 0 #991b1b, 0 20px 30px rgba(0,0,0,0.5); }
+        .buzzer-red:active { transform: translateY(8px); border-bottom: 4px solid #991b1b; box-shadow: 0 4px 0 #991b1b, 0 10px 15px rgba(0,0,0,0.3); }
+        
+        .buzzer-green { background-color: #059669; border-bottom: 12px solid #047857; box-shadow: 0 12px 0 #047857, 0 20px 30px rgba(0,0,0,0.4); pointer-events: none; }
+        
+        /* Real-Time Leaderboard Matrix */
+        .leaderboard-list { space-y: 10px; max-height: 300px; overflow-y: auto; }
+        .row-entry { display: flex; justify-content: space-between; align-items: center; padding: 14px; background-color: #1e1e1e; border: 1px solid #2d2d2d; border-radius: 12px; margin-bottom: 8px; }
+        .row-entry.winner { background-color: rgba(5, 150, 105, 0.15); border-color: #059669; color: #34d399; font-weight: bold; }
+        .row-left { display: flex; align-items: center; gap: 10px; }
+        .rank { font-family: monospace; font-size: 12px; color: #737373; }
+        .row-entry.winner .rank { color: #34d399; }
+        .timestamp { font-family: monospace; font-size: 11px; color: #737373; }
+        .fastest-tag { background-color: #059669; color: #000000; font-size: 9px; font-weight: 900; padding: 2px 6px; border-radius: 4px; letter-spacing: 1px; margin-right: 6px; }
+        .empty-text { text-align: center; color: #525252; font-style: italic; padding: 24px 0; font-size: 14px; }
     </style>
-    <!-- Unified Browser CDN Engine to expose Supabase safely to mobile buttons -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-4 select-none">
+<body>
 
-    <!-- Global Connection Initialization Logic -->
+    <!-- SCREEN 1: LANDING/ENTRY -->
+    <div id="screen-landing" class="screen active">
+        <h1>QUIZ<span>BUZZER</span></h1>
+        <div class="form-group">
+            <label>Room Code</label>
+            <input type="text" id="room-input" placeholder="E.G. GAME123" class="uppercase">
+        </div>
+        <div id="username-container" class="form-group">
+            <label>Your Name</label>
+            <input type="text" id="username-input" placeholder="E.g. Alex">
+        </div>
+        <button onclick="navigateGame(false)" class="btn btn-primary">Join as Player</button>
+        <button onclick="navigateGame(true)" class="btn btn-secondary">Host as Admin</button>
+    </div>
+
+    <!-- SCREEN 2: PLAYER VIEW -->
+    <div id="screen-player" class="screen">
+        <div class="meta-container">
+            <div class="badge">ROOM: <strong id="p-room">-</strong></div>
+            <div class="badge">USER: <strong id="p-name">-</strong></div>
+        </div>
+        <div class="buzzer-wrapper">
+            <button id="buzzer-btn" onclick="sendBuzzHit()" class="buzzer-btn buzzer-red">Press to Buzz</button>
+        </div>
+    </div>
+
+    <!-- SCREEN 3: ADMIN VIEW -->
+    <div id="screen-admin" class="screen" style="max-width: 500px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 1px solid #262626; padding-bottom: 16px;">
+            <div>
+                <h2>Admin Dashboard</h2>
+                <div class="subtitle">Room: <span id="a-room" style="color:#ef4444; font-weight:bold;">-</span></div>
+            </div>
+            <button onclick="clearBoard()" class="btn btn-danger" style="width: auto; padding: 8px 16px; margin: 0; font-size: 13px;">Reset Board</button>
+        </div>
+        
+        <span class="section-title">Buzzer Feed Order</span>
+        <div id="leaderboard" class="leaderboard-list">
+            <div class="empty-text">Waiting for players to buzz...</div>
+        </div>
+    </div>
+
+    <!-- ENGINE CODE LOGIC -->
     <script>
-        const SUPABASE_URL = "https://wfpqmyfhbwqszdzfjvbl.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmcHFteWZoYndxc3pkemZqdmJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MjgwNjEsImV4cCI6MjA5NDMwNDA2MX0.bm1xlejZwhtvGL-CzdozL9yaw3iksaTbe8l1re2vrCg";
+        const DB_URL = "supabase.co";
+        const DB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmcHFteWZoYndxc3pkemZqdmJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MjgwNjEsImV4cCI6MjA5NDMwNDA2MX0.bm1xlejZwhtvGL-CzdozL9yaw3iksaTbe8l1re2vrCg";
+        
+        let client = null;
+        let activeRoom = "";
+        let playerIdentity = "";
+        let canBuzz = true;
 
-        let supabaseClientInstance = null;
-        let currentRoom = "";
-        let currentUsername = "";
-        let isAdmin = false;
-        let buzzerEnabled = true;
-        let supabaseSubscription = null;
-
-        // Immediate global context execution
+        // Run client mapping instantly
         try {
             if (window.supabase && window.supabase.createClient) {
-                supabaseClientInstance = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                console.log("Database connected successfully.");
-            } else {
-                alert("Database Engine object missing. Trying recovery script...");
+                client = window.supabase.createClient(DB_URL, DB_KEY);
             }
-        } catch(e) {
-            alert("Initialization failure: " + e.message);
+        } catch(err) {
+            console.error("Initialization failure", err);
         }
-    </script>
 
-    <!-- 1. LANDING SCREEN -->
-    <div id="landing-screen" class="w-full max-w-md p-6 bg-[#161616] rounded-2xl border border-[#262626] shadow-2xl">
-        <h1 class="text-3xl font-extrabold tracking-tight text-center mb-8 text-white">QUIZ<span class="text-red-500">BUZZER</span></h1>
-        <div class="space-y-4">
-            <div>
-                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Room Code</label>
-                <input type="text" id="room-input" placeholder="e.g. GAME123" class="w-full bg-[#222] border border-[#333] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-red-500 font-mono tracking-widest uppercase">
-            </div>
-            <div id="username-container">
-                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Your Name</label>
-                <input type="text" id="username-input" placeholder="e.g. Alex" class="w-full bg-[#222] border border-[#333] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-red-500">
-            </div>
-            <button onclick="joinGame(false)" class="w-full bg-white text-black font-bold py-3.5 rounded-lg active:scale-95 transition-transform cursor-pointer mt-4">Join as Player</button>
-            <button onclick="joinGame(true)" class="w-full bg-[#222] border border-[#333] text-gray-300 font-semibold py-3 rounded-lg active:scale-95 transition-transform cursor-pointer">Host as Admin</button>
-        </div>
-    </div>
-
-    <!-- 2. PLAYER SCREEN -->
-    <div id="player-screen" class="hidden w-full max-w-md text-center">
-        <div class="mb-8 bg-[#161616] border border-[#262626] py-2 px-4 rounded-full inline-flex gap-4 text-sm font-mono">
-            <span class="text-gray-400">ROOM: <strong class="text-white" id="player-room-display">-</strong></span>
-            <span class="text-gray-400">USER: <strong class="text-white" id="player-name-display">-</strong></span>
-        </div>
-        <div class="flex flex-col items-center justify-center h-[50vh]">
-            <button id="buzzer-btn" onclick="triggerBuzz()" class="w-64 h-64 rounded-full bg-red-600 border-b-[12px] border-red-800 text-white font-extrabold text-2xl tracking-wide uppercase transition-all duration-150 shadow-[0_15px_0_0_#991b1b,0_20px_30px_0_rgba(0,0,0,0.5)] active:translate-y-2 active:border-b-[4px] active:shadow-[0_4px_0_0_#991b1b,0_10px_15px_0_rgba(0,0,0,0.3)] cursor-pointer flex items-center justify-center p-4 text-center">
-                Press to Buzz
-            </button>
-        </div>
-    </div>
-
-    <!-- 3. ADMIN SCREEN -->
-    <div id="admin-screen" class="hidden w-full max-w-xl p-6 bg-[#161616] rounded-2xl border border-[#262626] shadow-2xl">
-        <div class="flex justify-between items-center mb-6 pb-4 border-b border-[#262626]">
-            <div>
-                <h2 class="text-xl font-bold">Admin Dashboard</h2>
-                <p class="text-xs text-gray-400 font-mono">Room Code: <span id="admin-room-display" class="text-red-500 font-bold uppercase"></span></p>
-            </div>
-            <button onclick="resetBuzzer()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-2.5 rounded-lg active:scale-95 transition-transform cursor-pointer text-sm tracking-wide uppercase">Reset Board</button>
-        </div>
-        <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Buzzer Order</h3>
-        <div id="leaderboard" class="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
-            <p id="empty-state" class="text-sm text-gray-500 italic text-center py-8">Waiting for players to buzz...</p>
-        </div>
-    </div>
-
-    <!-- INTERACTION CONTROLLERS -->
-    <script>
-        async function joinGame(asAdmin) {
-            if(!supabaseClientInstance) {
-                // Hard reset fallback loop if mobile network lagged
-                if (window.supabase && window.supabase.createClient) {
-                    supabaseClientInstance = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        async function navigateGame(isAdminRole) {
+            if(!client) {
+                // Instantly try backup assignment
+                if(window.supabase && window.supabase.createClient) {
+                    client = window.supabase.createClient(DB_URL, DB_KEY);
                 } else {
-                    return alert("Connection engine stalled. Please refresh the page link.");
+                    return alert("Network Engine initializing. Try tapping again.");
                 }
             }
-            
-            const roomInput = document.getElementById('room-input').value.trim().toUpperCase();
-            const usernameInput = document.getElementById('username-input').value.trim();
 
-            if (!roomInput) return alert("Please enter a Room Code");
-            if (!asAdmin && !usernameInput) return alert("Please enter a Username");
+            const roomVal = document.getElementById('room-input').value.trim().toUpperCase();
+            const userVal = document.getElementById('username-input').value.trim();
 
-            currentRoom = roomInput;
-            currentUsername = asAdmin ? "Admin" : usernameInput;
-            isAdmin = asAdmin;
+            if (!roomVal) return alert("Enter a Room Code");
+            if (!isAdminRole && !userVal) return alert("Enter your Name");
+
+            activeRoom = roomVal;
+            playerIdentity = isAdminRole ? "Admin" : userVal;
+            isAdmin = isAdminRole;
+
+            document.getElementById('screen-landing').classList.remove('active');
 
             if (isAdmin) {
-                try {
-                    await supabaseClientInstance.from('rooms').upsert({ id: currentRoom });
-                    document.getElementById('admin-room-display').innerText = currentRoom;
-                    switchScreen('landing-screen', 'admin-screen');
-                    listenToRoomUpdates();
-                    fetchCurrentBuzzes();
-                } catch(err) {
-                    alert("Database write rejected: " + err.message);
-                }
+                await client.from('rooms').upsert({ id: activeRoom });
+                document.getElementById('a-room').innerText = activeRoom;
+                document.getElementById('screen-admin').classList.add('active');
+                connectStreams();
+                renderLeaderboard();
             } else {
-                document.getElementById('player-room-display').innerText = currentRoom;
-                document.getElementById('player-name-display').innerText = currentUsername;
-                switchScreen('landing-screen', 'player-screen');
-                listenToRoomUpdates();
+                document.getElementById('p-room').innerText = activeRoom;
+                document.getElementById('p-name').innerText = playerIdentity;
+                document.getElementById('screen-player').classList.add('active');
+                connectStreams();
             }
         }
 
-        function switchScreen(from, to) {
-            document.getElementById(from).classList.add('hidden');
-            document.getElementById(to).classList.remove('hidden');
-        }
-
-        function listenToRoomUpdates() {
-            supabaseSubscription = supabaseClientInstance.channel(`room:${currentRoom}`)
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'buzzes', filter: `room_id=eq.${currentRoom}` }, (payload) => {
-                    if (isAdmin) {
-                        fetchCurrentBuzzes();
+        function connectStreams() {
+            client.channel(`room:${activeRoom}`)
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'buzzes', filter: `room_id=eq.${activeRoom}` }, (payload) => {
+                    if (playerIdentity === "Admin") {
+                        renderLeaderboard();
                     } else {
-                        handlePlayerSync(payload);
+                        evaluateGlobalSync(payload);
                     }
                 })
                 .subscribe();
         }
 
-        async function triggerBuzz() {
-            if (!buzzerEnabled) return;
-            buzzerEnabled = false;
+        async function sendBuzzHit() {
+            if (!canBuzz) return;
+            canBuzz = false;
 
             if (navigator.vibrate) navigator.vibrate(100);
 
-            const { error } = await supabaseClientInstance.from('buzzes').insert({
-                room_id: currentRoom,
-                username: currentUsername
+            const { error } = await client.from('buzzes').insert({
+                room_id: activeRoom,
+                username: playerIdentity
             });
-            
-            if(error) {
-                buzzerEnabled = true;
-                alert("Buzzer Error: " + error.message);
+
+            if (error) {
+                canBuzz = true;
+                alert("Hit rejected: " + error.message);
             }
         }
 
-        function handlePlayerSync(payload) {
+        function evaluateGlobalSync(payload) {
             const btn = document.getElementById('buzzer-btn');
             if (payload.eventType === 'INSERT') {
-                buzzerEnabled = false;
-                const localWinner = payload.new.username;
-                btn.className = "w-64 h-64 rounded-full bg-emerald-600 border-b-[12px] border-emerald-800 text-white font-extrabold text-2xl tracking-wide uppercase transition-all duration-150 shadow-[0_15px_0_0_#065f46,0_20px_30px_0_rgba(0,0,0,0.5)] flex items-center justify-center p-4 text-center";
-                btn.innerText = `${localWinner} Buzzed!`;
+                canBuzz = false;
+                const winnerName = payload.new.username;
+                btn.className = "buzzer-btn buzzer-green";
+                btn.innerText = `${winnerName} BUZZED!`;
             } 
-            else if (payload.eventType === 'DELETE' || payload.eventType === 'UPDATE') {
-                buzzerEnabled = true;
-                btn.className = "w-64 h-64 rounded-full bg-red-600 border-b-[12px] border-red-800 text-white font-extrabold text-2xl tracking-wide uppercase transition-all duration-150 shadow-[0_15px_0_0_#991b1b,0_20px_30px_0_rgba(0,0,0,0.5)] active:translate-y-2 active:border-b-[4px] active:shadow-[0_4px_0_0_#991b1b,0_10px_15px_0_rgba(0,0,0,0.3)] cursor-pointer flex items-center justify-center p-4 text-center";
+            else if (payload.eventType === 'DELETE') {
+                canBuzz = true;
+                btn.className = "buzzer-btn buzzer-red";
                 btn.innerText = "Press to Buzz";
             }
         }
 
-        async function fetchCurrentBuzzes() {
-            const { data, error } = await supabaseClientInstance
+        async function renderLeaderboard() {
+            const { data, error } = await client
                 .from('buzzes')
                 .select('username, buzzed_at')
-                .eq('room_id', currentRoom)
+                .eq('room_id', activeRoom)
                 .order('buzzed_at', { ascending: true });
 
             if (error) return;
+            const container = document.getElementById('leaderboard');
 
-            const leaderboard = document.getElementById('leaderboard');
             if (data.length === 0) {
-                leaderboard.innerHTML = '<p id="empty-state" class="text-sm text-gray-500 italic text-center py-8">Waiting for players to buzz...</p>';
+                container.innerHTML = '<div class="empty-text">Waiting for players to buzz...</div>';
                 return;
             }
 
-            leaderboard.innerHTML = "";
-            data.forEach((entry, index) => {
-                const row = document.createElement('div');
-                const isFirst = index === 0;
+            container.innerHTML = "";
+            data.forEach((entry, idx) => {
+                const item = document.createElement('div');
+                const isFirst = idx === 0;
                 
-                row.className = `flex justify-between items-center p-4 rounded-xl border transition-all ${
-                    isFirst 
-                    ? 'bg-emerald-950/40 border-emerald-500 text-emerald-400 font-bold shadow-[0_0_15px_rgba(16,185,129,0.1)]' 
-                    : 'bg-[#1e1e1e] border-[#2d2d2d] text-gray-300'
-                }`;
-
-                row.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <span class="font-mono text-xs ${isFirst ? 'text-emerald-400' : 'text-gray-500'}">#${index + 1}</span>
-                        <span class="text-base tracking-wide">${entry.username}</span>
+                item.className = `row-entry ${isFirst ? 'winner' : ''}`;
+                item.innerHTML = `
+                    <div class="row-left">
+                        <span class="rank">#${idx + 1}</span>
+                        <span>${entry.username}</span>
                     </div>
-                    <div>
-                        ${isFirst ? '<span class="bg-emerald-500 text-black text-[10px] font-extrabold px-2 py-0.5 rounded mr-2 tracking-widest">FASTEST</span>' : ''}
-                        <span class="font-mono text-xs text-gray-500">${new Date(entry.buzzed_at).toLocaleTimeString()}</span>
+                    <div style="display:flex; align-items:center;">
+                        ${isFirst ? '<span class="fastest-tag">FASTEST</span>' : ''}
+                        <span class="timestamp">${new Date(entry.buzzed_at).toLocaleTimeString()}</span>
                     </div>
                 `;
-                leaderboard.appendChild(row);
+                container.appendChild(item);
             });
         }
 
-        async function resetBuzzer() {
-            await supabaseClientInstance.from('buzzes').delete().eq('room_id', currentRoom);
-            fetchCurrentBuzzes();
+        async function clearBoard() {
+            await client.from('buzzes').delete().eq('room_id', activeRoom);
+            renderLeaderboard();
         }
     </script>
 </body>
