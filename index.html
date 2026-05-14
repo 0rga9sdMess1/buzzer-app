@@ -5,68 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Quiz Buzzer</title>
     
-    <!-- FIXED LINE 7: Fully quantified standalone production UMD bundle driver link -->
-    <script src="jsdelivr.net"></script>
+    <!-- Using the original, stable library connection link that worked for you -->
+    <script src="unpkg.com"></script>
     
-    <!-- Native Embedded Nothing OS Minimalist Layout Theme -->
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         body { background-color: #0b0b0b; color: #f5f5f5; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; overflow-x: hidden; }
         
-        /* App Structure Views */
         .screen { width: 100%; max-width: 400px; background-color: #161616; border: 1px solid #262626; border-radius: 24px; padding: 28px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); display: none; }
         .screen.active { display: block; }
         
-        /* Typography Layout */
-        h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; text-align: center; margin-bottom: 24px; color: #ffffff; }
+        h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; text-align: center; margin-bottom: 32px; color: #ffffff; }
         h1 span { color: #ef4444; }
         h2 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
         .subtitle { font-size: 12px; color: #a3a3a3; font-family: monospace; text-transform: uppercase; margin-bottom: 16px; }
         .section-title { font-size: 11px; font-weight: 600; color: #a3a3a3; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: block; }
         
-        /* Form Console Elements */
-        .form-group { margin-bottom: 16px; }
+        .form-group { margin-bottom: 20px; }
         label { display: block; font-size: 11px; font-weight: 600; color: #a3a3a3; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-        input { width: 100%; background-color: #222; border: 1px solid #333; border-radius: 12px; padding: 14px; color: #ffffff; font-size: 16px; transition: border-color 0.2s; }
+        input { width: 100%; background-color: #222; border: 1px solid #333; border-radius: 12px; padding: 14px; color: #ffffff; font-size: 16px; }
         input:focus { outline: none; border-color: #ef4444; }
         input.uppercase { text-transform: uppercase; font-family: monospace; letter-spacing: 2px; }
         
-        /* Room Discovery Deck Component */
-        .room-deck { background-color: #1c1c1c; border: 1px dashed #333; border-radius: 14px; padding: 12px; margin-bottom: 20px; max-height: 110px; overflow-y: auto; }
-        .deck-title { font-size: 10px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: block; }
-        .rooms-wrapper { display: flex; flex-wrap: wrap; gap: 6px; }
-        .room-card { background-color: #262626; border: 1px solid #404040; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-family: monospace; font-weight: 700; color: #ffffff; cursor: pointer; transition: background-color 0.1s; }
-        .room-card:active { background-color: #ef4444; }
-        .no-rooms { font-size: 11px; color: #525252; font-style: italic; }
-        
-        /* Buttons Matrix */
-        .btn { display: block; width: 100%; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; border: none; cursor: pointer; transition: transform 0.1s, background-color 0.2s; text-align: center; margin-bottom: 12px; }
-        .btn:active { transform: scale(0.98); }
+        .btn { display: block; width: 100%; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; border: none; cursor: pointer; text-align: center; margin-bottom: 12px; }
         .btn-primary { background-color: #ffffff; color: #000000; }
         .btn-secondary { background-color: #222222; color: #d4d4d4; border: 1px solid #333333; }
-        .btn-danger { background-color: #ef4444; color: #ffffff; margin-bottom: 6px; }
+        .btn-danger { background-color: #ef4444; color: #ffffff; }
         
-        /* Room Data Badges */
         .meta-container { display: flex; gap: 12px; justify-content: center; margin-bottom: 24px; }
         .badge { background-color: #222; border: 1px solid #333; padding: 6px 14px; border-radius: 20px; font-family: monospace; font-size: 12px; color: #a3a3a3; }
-        .badge strong { color: #ffffff; }
         
-        /* 3D Mechanical Buzz Component */
         .buzzer-wrapper { display: flex; justify-content: center; align-items: center; height: 280px; }
-        .buzzer-btn { width: 200px; height: 200px; border-radius: 50%; font-size: 22px; font-weight: 800; text-transform: uppercase; border: none; color: #ffffff; cursor: pointer; transition: all 0.1s ease; outline: none; }
+        .buzzer-btn { width: 200px; height: 200px; border-radius: 50%; font-size: 22px; font-weight: 800; text-transform: uppercase; border: none; color: #ffffff; cursor: pointer; outline: none; }
         
         .buzzer-red { background-color: #dc2626; border-bottom: 12px solid #991b1b; box-shadow: 0 12px 0 #991b1b, 0 20px 30px rgba(0,0,0,0.5); }
         .buzzer-red:active { transform: translateY(8px); border-bottom: 4px solid #991b1b; box-shadow: 0 4px 0 #991b1b, 0 10px 15px rgba(0,0,0,0.3); }
-        
         .buzzer-green { background-color: #059669; border-bottom: 12px solid #047857; box-shadow: 0 12px 0 #047857, 0 20px 30px rgba(0,0,0,0.4); pointer-events: none; }
         
-        /* Leaderboard Component */
-        .leaderboard-list { max-height: 260px; overflow-y: auto; margin-bottom: 10px; }
+        .leaderboard-list { max-height: 300px; overflow-y: auto; }
         .row-entry { display: flex; justify-content: space-between; align-items: center; padding: 14px; background-color: #1e1e1e; border: 1px solid #2d2d2d; border-radius: 12px; margin-bottom: 8px; }
         .row-entry.winner { background-color: rgba(5, 150, 105, 0.15); border-color: #059669; color: #34d399; font-weight: bold; }
         .row-left { display: flex; align-items: center; gap: 10px; }
         .rank { font-family: monospace; font-size: 12px; color: #737373; }
-        .row-entry.winner .rank { color: #34d399; }
         .timestamp { font-family: monospace; font-size: 11px; color: #737373; }
         .fastest-tag { background-color: #059669; color: #000000; font-size: 9px; font-weight: 900; padding: 2px 6px; border-radius: 4px; letter-spacing: 1px; margin-right: 6px; }
         .empty-text { text-align: center; color: #525252; font-style: italic; padding: 24px 0; font-size: 14px; }
@@ -77,20 +57,11 @@
     <!-- SCREEN 1: LANDING/ENTRY -->
     <div id="screen-landing" class="screen active">
         <h1>QUIZ<span>BUZZER</span></h1>
-        
-        <!-- Live Discovery Deck Sub-Module -->
-        <div class="room-deck">
-            <span class="deck-title">Active Game Rooms (Tap to Select)</span>
-            <div id="live-rooms-wrapper" class="rooms-wrapper">
-                <span class="no-rooms">Searching for games...</span>
-            </div>
-        </div>
-
         <div class="form-group">
             <label>Room Code</label>
             <input type="text" id="room-input" placeholder="E.G. GAME123" class="uppercase">
         </div>
-        <div id="username-container" class="form-group">
+        <div class="form-group">
             <label>Your Name</label>
             <input type="text" id="username-input" placeholder="E.g. Alex">
         </div>
@@ -111,105 +82,51 @@
 
     <!-- SCREEN 3: ADMIN VIEW -->
     <div id="screen-admin" class="screen" style="max-width: 500px;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; border-bottom: 1px solid #262626; padding-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 1px solid #262626; padding-bottom: 16px;">
             <div>
                 <h2>Admin Dashboard</h2>
                 <div class="subtitle">Room: <span id="a-room" style="color:#ef4444; font-weight:bold;">-</span></div>
             </div>
-            <button onclick="clearBoard()" class="btn btn-primary" style="width: auto; padding: 10px 18px; margin: 0; font-size: 13px;">Reset Board</button>
+            <button onclick="clearBoard()" class="btn btn-primary" style="width: auto; padding: 8px 16px; margin: 0; font-size: 13px;">Reset Board</button>
         </div>
         
         <span class="section-title">Buzzer Feed Order</span>
         <div id="leaderboard" class="leaderboard-list">
             <div class="empty-text">Waiting for players to buzz...</div>
         </div>
-
-        <button onclick="deleteEntireRoom()" class="btn btn-danger" style="font-size:14px; padding:12px; margin-top:10px;">Close & Delete Room</button>
+        <button onclick="deleteEntireRoom()" class="btn btn-danger" style="font-size:14px; padding:12px; margin-top:20px;">Close & Delete Room</button>
     </div>
 
     <!-- CORE INTERACTION MECHANICS -->
     <script>
-        // FIXED LINE 210: Clean variable layout without copying hidden trailing characters
-        const DB_URL = "https://wfpqmyfhbwqszdzfjvbl.supabase.co";
+        const DB_URL = "supabase.co";
         const DB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmcHFteWZoYndxc3pkemZqdmJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MjgwNjEsImV4cCI6MjA5NDMwNDA2MX0.bm1xlejZwhtvGL-CzdozL9yaw3iksaTbe8l1re2vrCg";
         
         let client = null;
         let activeRoom = "";
         let playerIdentity = "";
         let canBuzz = true;
-        let activeGlobalChannels = {};
 
-        function initDatabaseEngine() {
-            if (client) return true;
-            try {
-                // FIXED: Explicit global object instance assignment signature
-                const targetScope = window.supabase || supabase;
-                if (targetScope && targetScope.createClient) {
-                    client = targetScope.createClient(DB_URL, DB_KEY);
-                    return true;
-                }
-            } catch(err) {
-                console.error("Database compilation exception: ", err);
+        // Reverting back exactly to your original working connection initializer
+        try {
+            if (window.supabase && window.supabase.createClient) {
+                client = window.supabase.createClient(DB_URL, DB_KEY);
             }
-            return false;
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            let attempts = 0;
-            const bootInterval = setInterval(() => {
-                attempts++;
-                if (initDatabaseEngine() || attempts > 15) {
-                    clearInterval(bootInterval);
-                    if(client) {
-                        fetchActiveRoomsDiscovery();
-                        client.channel('global-room-tracker')
-                            .on('postgres_changes', { event: '*', schema: 'public', table: 'rooms' }, () => {
-                                fetchActiveRoomsDiscovery();
-                            })
-                            .subscribe();
-                    }
-                }
-            }, 200);
-        });
-
-        async function fetchActiveRoomsDiscovery() {
-            if(!client) return;
-            try {
-                const { data, error } = await client.from('rooms').select('id');
-                const container = document.getElementById('live-rooms-wrapper');
-                if(!container) return;
-                
-                if(error || !data || data.length === 0) {
-                    container.innerHTML = '<span class="no-rooms">No active rooms found...</span>';
-                    return;
-                }
-                container.innerHTML = "";
-                data.forEach(room => {
-                    const badge = document.createElement('span');
-                    badge.className = 'room-card';
-                    badge.innerText = room.id;
-                    badge.onclick = () => {
-                        document.getElementById('room-input').value = room.id;
-                    };
-                    container.appendChild(badge);
-                });
-            } catch(e) {
-                console.log("Discovery scanning payload pending...");
-            }
+        } catch(err) {
+            console.error("Initialization failure", err);
         }
 
         async function navigateGame(isAdminRole) {
-            if (!initDatabaseEngine()) {
-                return alert("Network script is downloading. Please wait 2 seconds and tap again.");
+            if(!client) {
+                if(window.supabase && window.supabase.createClient) {
+                    client = window.supabase.createClient(DB_URL, DB_KEY);
+                } else {
+                    return alert("Connection loading. Tap once more.");
+                }
             }
 
-            const roomInput = document.getElementById('room-input');
-            const usernameInput = document.getElementById('username-input');
-
-            if (!roomInput || !usernameInput) return;
-
-            const roomVal = roomInput.value.trim().toUpperCase();
-            const userVal = usernameInput.value.trim();
+            const roomVal = document.getElementById('room-input').value.trim().toUpperCase();
+            const userVal = document.getElementById('username-input').value.trim();
 
             if (!roomVal) return alert("Enter a Room Code");
             if (!isAdminRole && !userVal) return alert("Enter your Name");
@@ -218,39 +135,31 @@
             playerIdentity = isAdminRole ? "Admin" : userVal;
 
             if (isAdminRole) {
-                try {
-                    await client.from('rooms').upsert({ id: activeRoom });
-                    document.getElementById('a-room').innerText = activeRoom;
-                    document.getElementById('screen-landing').style.display = 'none';
-                    document.getElementById('screen-admin').style.display = 'block';
-                    connectStreams();
-                    renderLeaderboard();
-                } catch(err) {
-                    alert("Admin entry failed: " + err.message);
-                }
+                // Admin creates room row cleanly
+                await client.from('rooms').upsert({ id: activeRoom });
+                document.getElementById('a-room').innerText = activeRoom;
+                document.getElementById('screen-landing').classList.remove('active');
+                document.getElementById('screen-admin').classList.add('active');
+                connectStreams();
+                renderLeaderboard();
             } else {
-                try {
-                    const { data, error } = await client.from('rooms').select('id').eq('id', activeRoom).maybeSingle();
-                    
-                    if (error || !data) {
-                        return alert("This room does not exist yet. Wait for the host to create it.");
-                    }
-
-                    document.getElementById('p-room').innerText = activeRoom;
-                    document.getElementById('p-name').innerText = playerIdentity;
-                    document.getElementById('screen-landing').style.display = 'none';
-                    document.getElementById('screen-player').style.display = 'block';
-                    connectStreams();
-                } catch(err) {
-                    alert("Player validation failure: " + err.message);
+                // Fixed Room check validation loop
+                const { data, error } = await client.from('rooms').select('id').eq('id', activeRoom);
+                if (error || !data || data.length === 0) {
+                    return alert("This room does not exist yet. Please wait for the host to create it.");
                 }
+
+                document.getElementById('p-room').innerText = activeRoom;
+                document.getElementById('p-name').innerText = playerIdentity;
+                document.getElementById('screen-landing').classList.remove('active');
+                document.getElementById('screen-player').classList.add('active');
+                connectStreams();
             }
         }
 
         function connectStreams() {
-            if(!client) return;
-
-            activeGlobalChannels.buzzes = client.channel(`buzzes-${activeRoom}`)
+            // Channel 1: Listen to row changes in buzzes table
+            client.channel(`buzzes:${activeRoom}`)
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'buzzes', filter: `room_id=eq.${activeRoom}` }, (payload) => {
                     if (playerIdentity === "Admin") {
                         renderLeaderboard();
@@ -260,40 +169,40 @@
                 })
                 .subscribe();
 
-            activeGlobalChannels.rooms = client.channel(`rooms-${activeRoom}`)
+            // Channel 2: Listen for room session termination events
+            client.channel(`rooms:${activeRoom}`)
                 .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'rooms', filter: `id=eq.${activeRoom}` }, () => {
-                    handleForcedEviction();
+                    if (playerIdentity !== "Admin") {
+                        alert("The Host has ended this session.");
+                        location.reload(); // Instantly clears client memory and kicks back to start safely
+                    }
                 })
                 .subscribe();
         }
 
         async function sendBuzzHit() {
-            if (!canBuzz || !client) return;
+            if (!canBuzz) return;
             canBuzz = false;
 
             if (navigator.vibrate) navigator.vibrate(100);
 
-            const { error } = await client.from('buzzes').insert({
+            await client.from('buzzes').insert({
                 room_id: activeRoom,
                 username: playerIdentity
             });
-
-            if (error) {
-                canBuzz = true;
-                alert("Hit rejected: " + error.message);
-            }
         }
 
         function evaluateGlobalSync(payload) {
             const btn = document.getElementById('buzzer-btn');
-            if(!btn) return;
-            
-            if (payload.eventType === 'DELETE' || !payload.new || Object.keys(payload.new).length === 0) {
+            if (!btn) return;
+
+            // FIX: If a DELETE packet triggers (board cleared), reset the green button to red immediately
+            if (payload.eventType === 'DELETE') {
                 canBuzz = true;
                 btn.className = "buzzer-btn buzzer-red";
                 btn.innerText = "Press to Buzz";
                 return;
-            }
+            } 
             
             if (payload.eventType === 'INSERT') {
                 canBuzz = false;
@@ -304,15 +213,14 @@
         }
 
         async function renderLeaderboard() {
-            if(!client) return;
             const { data, error } = await client
                 .from('buzzes')
                 .select('username, buzzed_at')
                 .eq('room_id', activeRoom)
-                .order('buzzed_at', { ascending: true }); // FIXED LINE 317: Standard table property key mapping
+                .order('buzzed_at', { ascending: true });
 
+            if (error) return;
             const container = document.getElementById('leaderboard');
-            if(!container || error) return;
 
             if (data.length === 0) {
                 container.innerHTML = '<div class="empty-text">Waiting for players to buzz...</div>';
@@ -340,44 +248,14 @@
         }
 
         async function clearBoard() {
-            if(!client) return;
             await client.from('buzzes').delete().eq('room_id', activeRoom);
             renderLeaderboard();
         }
 
         async function deleteEntireRoom() {
-            if(!client || !confirm("Are you sure you want to end the session? This will boot all active players.")) return;
-            
+            if(!confirm("Are you sure you want to delete this room and end the game?")) return;
             await client.from('rooms').delete().eq('id', activeRoom);
-            
-            document.getElementById('screen-admin').style.display = 'none';
-            document.getElementById('screen-landing').style.display = 'block';
-            
-            if(activeGlobalChannels.buzzes) activeGlobalChannels.buzzes.unsubscribe();
-            if(activeGlobalChannels.rooms) activeGlobalChannels.rooms.unsubscribe();
-            
-            fetchActiveRoomsDiscovery();
-        }
-
-        function handleForcedEviction() {
-            if(playerIdentity === "Admin") return;
-            
-            alert("The Host has closed this gaming room session.");
-            
-            document.getElementById('screen-player').style.display = 'none';
-            document.getElementById('screen-landing').style.display = 'block';
-            
-            const btn = document.getElementById('buzzer-btn');
-            canBuzz = true;
-            if(btn) {
-                btn.className = "buzzer-btn buzzer-red";
-                btn.innerText = "Press to Buzz";
-            }
-            
-            if(activeGlobalChannels.buzzes) activeGlobalChannels.buzzes.unsubscribe();
-            if(activeGlobalChannels.rooms) activeGlobalChannels.rooms.unsubscribe();
-            
-            fetchActiveRoomsDiscovery();
+            location.reload(); // Safely resets admin console view
         }
     </script>
 </body>
