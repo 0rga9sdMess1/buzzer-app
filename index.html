@@ -5,62 +5,66 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Quiz Buzzer</title>
     
-    <!-- Self-Contained Native Scripting Layout Core. No external script downloads required. -->
+    <!-- No external database library files are downloaded here. The code is 100% self-contained. -->
+    
+    <!-- Visual Layout Styles: Clean Nothing OS Minimalist Dark UI Theme -->
     <style>
-        /* Global touch optimizations to ensure layout parameters read perfectly on Android touchscreens */
+        /* Base metrics to make sure touch targets layout perfectly on mobile screens */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         body { background-color: #0b0b0b; color: #f5f5f5; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; overflow-x: hidden; position: relative; }
         
-        /* Application Display Viewports */
+        /* Display Panel Screen Frameworks */
         .screen { width: 100%; max-width: 400px; background-color: #161616; border: 1px solid #262626; border-radius: 24px; padding: 28px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); display: none; }
         .screen.active { display: block; }
         
-        /* Typography Elements Layout */
+        /* Typography Elements */
         h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; text-align: center; margin-bottom: 24px; color: #ffffff; }
         h1 span { color: #ef4444; }
         h2 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
         .subtitle { font-size: 12px; color: #a3a3a3; font-family: monospace; text-transform: uppercase; margin-bottom: 16px; }
         .section-title { font-size: 11px; font-weight: 600; color: #a3a3a3; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: block; }
         
-        /* Entry Input Fields */
+        /* Inputs fields matrices */
         .form-group { margin-bottom: 16px; }
         label { display: block; font-size: 11px; font-weight: 600; color: #a3a3a3; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
         input { width: 100%; background-color: #222; border: 1px solid #333; border-radius: 12px; padding: 14px; color: #ffffff; font-size: 16px; }
         input:focus { outline: none; border-color: #ef4444; }
         input.uppercase { text-transform: uppercase; font-family: monospace; letter-spacing: 2px; }
         
-        /* Room Discovery Deck Components */
+        /* Manual Discovery Box Components */
         .room-deck { background-color: #1c1c1c; border: 1px dashed #333; border-radius: 14px; padding: 14px; margin-bottom: 24px; }
         .deck-title { font-size: 10px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; display: block; }
         .rooms-wrapper { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
         
-        /* Autofill touch selection card badges */
-        .room-card { background-color: #262626; border: 1px solid #404040; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-family: monospace; font-weight: 700; color: #ffffff; cursor: pointer; }
+        /* Autofill room code entry badges */
+        .room-card { background-color: #262626; border: 1px solid #404040; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-family: monospace; font-weight: 700; color: #ffffff; cursor: pointer; transition: background-color 0.1s; }
         .room-card:active { background-color: #059669; }
         .status-msg { font-size: 11px; color: #737373; font-style: italic; }
         
-        /* Utility Action Buttons Framework */
+        /* Interactive Action Buttons */
         .btn { display: block; width: 100%; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; border: none; cursor: pointer; text-align: center; margin-bottom: 12px; transition: transform 0.1s; }
         .btn:active { transform: scale(0.98); }
         .btn-primary { background-color: #ffffff; color: #000000; }
         .btn-secondary { background-color: #222222; color: #d4d4d4; border: 1px solid #333333; }
-        .btn-danger { background-color: #ef4444; color: #ffffff; margin-bottom: 6px; }
+        .btn-danger { background-color: #ef4444; color: #ffffff; }
         .btn-small { padding: 8px 12px; font-size: 11px; width: auto; display: inline-block; margin-bottom: 0; background-color: #262626; color: #a3a3a3; border: 1px solid #333; }
         
-        /* Live Header Room Tracking Badges */
+        /* Realtime tracking Badges */
         .meta-container { display: flex; gap: 12px; justify-content: center; margin-bottom: 24px; }
         .badge { background-color: #222; border: 1px solid #333; padding: 6px 14px; border-radius: 20px; font-family: monospace; font-size: 12px; color: #a3a3a3; }
         
-        /* Mechanical 3D Response Buzzer Component */
+        /* 3D Response Buzzer button properties */
         .buzzer-wrapper { display: flex; justify-content: center; align-items: center; height: 280px; }
         .buzzer-btn { width: 200px; height: 200px; border-radius: 50%; font-size: 22px; font-weight: 800; text-transform: uppercase; border: none; color: #ffffff; cursor: pointer; outline: none; transition: all 0.1s; }
         
+        /* Mechanical Active State */
         .buzzer-red { background-color: #dc2626; border-bottom: 12px solid #991b1b; box-shadow: 0 12px 0 #991b1b, 0 20px 30px rgba(0,0,0,0.5); }
         .buzzer-red:active { transform: translateY(8px); border-bottom: 4px solid #991b1b; box-shadow: 0 4px 0 #991b1b, 0 10px 15px rgba(0,0,0,0.3); }
         
+        /* Lockout Green pressed state */
         .buzzer-green { background-color: #059669; border-bottom: 12px solid #047857; box-shadow: 0 12px 0 #047857, 0 20px 30px rgba(0,0,0,0.4); pointer-events: none; }
         
-        /* Leaderboard Entries list feeds */
+        /* Real-time Admin dashboards feed order lists */
         .leaderboard-list { max-height: 260px; overflow-y: auto; }
         .row-entry { display: flex; justify-content: space-between; align-items: center; padding: 14px; background-color: #1e1e1e; border: 1px solid #2d2d2d; border-radius: 12px; margin-bottom: 8px; }
         .row-entry.winner { background-color: rgba(5, 150, 105, 0.15); border-color: #059669; color: #34d399; font-weight: bold; }
@@ -70,20 +74,21 @@
         .fastest-tag { background-color: #059669; color: #000000; font-size: 9px; font-weight: 900; padding: 2px 6px; border-radius: 4px; letter-spacing: 1px; margin-right: 6px; }
         .empty-text { text-align: center; color: #525252; font-style: italic; padding: 24px 0; font-size: 14px; }
 
-        /* Dynamic Versioning Label Stamp Alignment */
-        .version-stamp { position: absolute; bottom: 8px; right: 12px; font-family: monospace; font-size: 10px; color: #404040; letter-spacing: 0.5px; pointer-events: none; text-align: right; }
+        /* Fixed Tracking Label Versioning Stamp Properties */
+        .version-stamp { position: absolute; bottom: 8px; right: 12px; font-family: monospace; font-size: 10px; color: #404040; letter-spacing: 0.5px; pointer-events: none; text-align: right; z-index: 9999; }
     </style>
 </head>
 <body>
 
-    <!-- SCREEN 1: LANDING CONSOLE VIEW -->
+    <!-- SCREEN 1: LANDING ENTRY LAYOUT CONSOLE -->
     <div id="screen-landing" class="screen active">
         <h1>QUIZ<span>BUZZER</span></h1>
         
-        <!-- Manual Room Discovery Sub-Module Container -->
+        <!-- Manual Discovery Panel: Lists running game codes when you tap scan button -->
         <div class="room-deck">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                 <span class="deck-title" style="margin-bottom:0;">Room Discovery Panel</span>
+                <!-- Safe manual click handler prevents system startup app freezes -->
                 <button onclick="manuallyScanActiveRooms()" class="btn btn-small">Scan for Active Rooms</button>
             </div>
             <div id="live-rooms-wrapper" class="rooms-wrapper">
@@ -103,7 +108,7 @@
         <button onclick="navigateGame(true)" class="btn btn-secondary">Host as Admin</button>
     </div>
 
-    <!-- SCREEN 2: PLAYER INTERACTIVE BUZZER VIEW -->
+    <!-- SCREEN 2: PLAYER INTERACTIVE RESPONSE VIEW -->
     <div id="screen-player" class="screen">
         <div class="meta-container">
             <div class="badge">ROOM: <strong id="p-room">-</strong></div>
@@ -114,7 +119,7 @@
         </div>
     </div>
 
-    <!-- SCREEN 3: HOST CONTROL DASHBOARD VIEW -->
+    <!-- SCREEN 3: HOST CONTROL BOARD VIEW -->
     <div id="screen-admin" class="screen" style="max-width: 500px;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 1px solid #262626; padding-bottom: 16px;">
             <div>
@@ -131,12 +136,12 @@
         <button onclick="deleteEntireRoom()" class="btn btn-danger" style="font-size:14px; padding:12px; margin-top:20px;">Close & Delete Room</button>
     </div>
 
-    <!-- ADDED FEATURE: Global Version Badge Component Footprint Alignment -->
-    <div class="version-stamp">Ver.1.1.0.14.05.2026.15.42.00</div>
+    <!-- Dynamic Versioning Stamp Dashboard Indicator -->
+    <div class="version-stamp">Ver.1.1.1.14.05.2026.15.45.00</div>
 
-    <!-- SYSTEM WEB SERVICE CHANNELS -->
+    <!-- ENGINE CODE LOGIC INTERACTION MATRIX -->
     <script>
-        /* FIXED DOMAIN ROUTING ENDPOINT: Embedded the exact unique sub-domain tracking parameter with /rest/v1 base URL */
+        // CRUCIAL REPAIR: Hardcoded with the explicit protocol prefix string to stop browser relative URL errors
         const API_BASE = "supabase.co";
         
         const HEADERS = {
@@ -152,20 +157,20 @@
         let activePollingInterval = null;
 
         /**
-         * Manual Discovery Scanner Engine:
-         * Intercepts table data directly over clean HTTPS fetch requests.
+         * Manual Scanner Protocol:
+         * Triggered purely when users manually tap the "Scan for Active Rooms" button.
          */
         async function manuallyScanActiveRooms() {
             const container = document.getElementById('live-rooms-wrapper');
             if(!container) return;
 
-            container.innerHTML = '<span class="status-msg">Reading active rooms...</span>';
+            container.innerHTML = '<span class="status-msg">Searching database...</span>';
 
             try {
                 const response = await fetch(`${API_BASE}/rooms?select=id`, { method: "GET", headers: HEADERS });
                 
                 if(!response.ok) {
-                    throw new Error(`HTTP Error Status Code: ${response.status}`);
+                    throw new Error(`HTTP Error Status: ${response.status}`);
                 }
                 
                 const data = await response.json();
@@ -183,9 +188,9 @@
                     badge.innerText = `${room.id} [Load]`;
                     
                     badge.onclick = () => {
-                        const inputField = document.getElementById('room-input');
-                        if(inputField) {
-                            inputField.value = room.id;
+                        const inputRow = document.getElementById('room-input');
+                        if(inputRow) {
+                            inputRow.value = room.id;
                             if (navigator.vibrate) navigator.vibrate(50); 
                         }
                     };
@@ -199,7 +204,7 @@
 
         /**
          * Navigation Interface Router:
-         * Transitions views locally immediately, then writes rows to the background thread seamlessly.
+         * Manages display views based on selected layout triggers.
          */
         async function navigateGame(isAdminRole) {
             const roomVal = document.getElementById('room-input').value.trim().toUpperCase();
@@ -212,7 +217,7 @@
             playerIdentity = isAdminRole ? "Admin" : userVal;
 
             if (isAdminRole) {
-                /* SUCCESS PATH: Shift UI views locally first to keep application highly responsive */
+                // UI Switch Override: Transitions panel state instantly to protect against lagging freezes
                 document.getElementById('screen-landing').style.display = 'none';
                 document.getElementById('a-room').innerText = activeRoom;
                 document.getElementById('screen-admin').style.display = 'block';
@@ -224,18 +229,18 @@
                         body: JSON.stringify({ id: activeRoom })
                     });
                     
-                    if(!response.ok) throw new Error(`HTTP Status Code: ${response.status}`);
+                    if(!response.ok) throw new Error(`HTTP Status: ${response.status}`);
 
                     renderLeaderboard();
                     activePollingInterval = setInterval(renderLeaderboard, 1500);
                 } catch(err) {
-                    alert("Admin Cloud Registry Error: " + err.message);
+                    alert("Admin Room Creation Failed! Error Detail: " + err.message);
                 }
             } else {
                 try {
                     const response = await fetch(`${API_BASE}/rooms?id=eq.${activeRoom}&select=id`, { method: "GET", headers: HEADERS });
                     
-                    if(!response.ok) throw new Error(`HTTP Status Code: ${response.status}`);
+                    if(!response.ok) throw new Error(`HTTP Status: ${response.status}`);
                     
                     const roomsList = await response.json();
 
@@ -243,7 +248,7 @@
                         return alert("This room does not exist yet. Please wait for the host to create it.");
                     }
 
-                    /* SUCCESS PATH: Shift UI view instantly to display the red quiz buzzer */
+                    // UI Switch Override: Lock user layout straight into the red buzzer frame
                     document.getElementById('screen-landing').style.display = 'none';
                     document.getElementById('p-room').innerText = activeRoom;
                     document.getElementById('p-name').innerText = playerIdentity;
@@ -251,13 +256,14 @@
                     
                     activePollingInterval = setInterval(checkPlayerGlobalStateSync, 1500);
                 } catch(err) {
-                    alert("Guest Join Validation Failure! Detail: " + err.message);
+                    alert("Guest Join Validation Failure! Error Detail: " + err.message);
                 }
             }
         }
 
         /**
-         * Transmission Pipeline: Logs buzzer hits down into database table rows.
+         * Buzzer Logging Pipeline:
+         * Logs user tap timestamps directly into the database row architecture.
          */
         async function sendBuzzHit() {
             if (!canBuzz) return;
@@ -278,10 +284,10 @@
                     body: JSON.stringify({ room_id: activeRoom, username: playerIdentity })
                 });
                 
-                if(!response.ok) throw new Error(`HTTP Status Code: ${response.status}`);
+                if(!response.ok) throw new Error(`HTTP Status: ${response.status}`);
             } catch(e) {
                 canBuzz = true;
-                alert("Buzzer Signal Sync Drop! Detail: " + e.message);
+                alert("Buzzer Transmission Packet Dropped! Detail: " + e.message);
             }
         }
 
@@ -312,12 +318,12 @@
                     btn.innerText = "Press to Buzz";
                 } else {
                     canBuzz = false;
-                    const activeWinner = buzzData[0].username; // Zero indexing layout selection maps winner string parameter correctly
+                    const activeWinner = buzzData[0].username; // Correctly maps index array zero property string
                     btn.className = "buzzer-btn buzzer-green";
                     btn.innerText = `${activeWinner} BUZZED!`;
                 }
             } catch(e) {
-                console.log("Sync tracking tick cycle pending...");
+                console.log("Sync loop waiting...");
             }
         }
 
@@ -356,7 +362,7 @@
                     container.appendChild(item);
                 });
             } catch(e) {
-                console.log("Leaderboard parsing loop waiting...");
+                console.log("Leaderboard mapping sequence waiting...");
             }
         }
 
@@ -364,10 +370,4 @@
          * Reset Utility.
          */
         async function clearBoard() {
-            try {
-                await fetch(`${API_BASE}/buzzes?room_id=eq.${activeRoom}`, { method: "DELETE", headers: HEADERS });
-                renderLeaderboard();
-            } catch(e) {
-                alert("Board Wipe Failed: " + e.message);
-            }
-     
+            try
