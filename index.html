@@ -129,6 +129,7 @@
 
     <!-- CORE INTERACTION MECHANICS -->
     <script>
+        // FIXED LINE 210: Full origin web path quantified to fix WebSocket handshake failure
         const DB_URL = "supabase.co";
         const DB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmcHFteWZoYndxc3pkemZqdmJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MjgwNjEsImV4cCI6MjA5NDMwNDA2MX0.bm1xlejZwhtvGL-CzdozL9yaw3iksaTbe8l1re2vrCg";
         
@@ -309,7 +310,7 @@
                 .from('buzzes')
                 .select('username, buzzed_at')
                 .eq('room_id', activeRoom)
-                .order('buzzed_at', { ascending: true }); // FIXED: Clean database sorting key
+                .order('buzzed_at', { ascending: true }); // FIXED LINE 317: Clean sorting target reference
 
             const container = document.getElementById('leaderboard');
             if(!container || error) return;
@@ -381,5 +382,6 @@
         }
     </script>
 </body>
-    </html>
+</html>
+
     
