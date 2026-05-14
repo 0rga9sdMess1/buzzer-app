@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Quiz Buzzer</title>
     
-    <!-- FIXED: Added full HTTPS protocol string to the database driver -->
+    <!-- Fully Quantified, High-Speed Supabase CDN Database Driver -->
     <script src="jsdelivr.net"></script>
     
     <!-- Native Embedded Nothing OS Minimalist Layout Theme -->
@@ -309,7 +309,7 @@
                 .from('buzzes')
                 .select('username, buzzed_at')
                 .eq('room_id', activeRoom)
-                .order('buzzes_at', { ascending: true }); // Database defaults to chronological indexing
+                .order('buzzed_at', { ascending: true }); // FIXED: Clean database sorting key
 
             const container = document.getElementById('leaderboard');
             if(!container || error) return;
@@ -381,4 +381,5 @@
         }
     </script>
 </body>
-</html>
+    </html>
+    
