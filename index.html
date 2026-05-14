@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Quiz Buzzer</title>
     
-    <!-- This is the core external database library script. It MUST download completely before any code executes. -->
+    <!-- FIXED LINE 7: Fully qualified, explicit security protocol link to prevent mobile browser rejection -->
     <script src="jsdelivr.net"></script>
     
-    <!-- Visual Layout Styles: Inspired by the dark, minimalist design system of Nothing OS -->
+    <!-- Embedded Stylesheet: Custom Minimalist Nothing OS Layout Theme -->
     <style>
-        /* Base setup to ensure layout sizing reads cleanly on mobile phone touchscreens */
+        /* Base touch optimization metrics to ensure padding renders perfectly on Android phone screens */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         body { background-color: #0b0b0b; color: #f5f5f5; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; overflow-x: hidden; }
         
-        /* Application Display Card Containers (Views) */
+        /* Application Display Viewports */
         .screen { width: 100%; max-width: 400px; background-color: #161616; border: 1px solid #262626; border-radius: 24px; padding: 28px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); display: none; }
         .screen.active { display: block; }
         
@@ -25,44 +25,47 @@
         .subtitle { font-size: 12px; color: #a3a3a3; font-family: monospace; text-transform: uppercase; margin-bottom: 16px; }
         .section-title { font-size: 11px; font-weight: 600; color: #a3a3a3; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: block; }
         
-        /* Input Field Consoles */
-        .form-group { margin-bottom: 20px; }
+        /* Form Console Elements */
+        .form-group { margin-bottom: 16px; }
         label { display: block; font-size: 11px; font-weight: 600; color: #a3a3a3; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
         input { width: 100%; background-color: #222; border: 1px solid #333; border-radius: 12px; padding: 14px; color: #ffffff; font-size: 16px; }
         input:focus { outline: none; border-color: #ef4444; }
         input.uppercase { text-transform: uppercase; font-family: monospace; letter-spacing: 2px; }
         
-        /* Active Game Discovery Room Deck Container */
-        .room-deck { background-color: #1c1c1c; border: 1px dashed #333; border-radius: 14px; padding: 12px; margin-bottom: 20px; max-height: 110px; overflow-y: auto; }
-        .deck-title { font-size: 10px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: block; }
-        .rooms-wrapper { display: flex; flex-wrap: wrap; gap: 6px; }
+        /* Manual Discovery Panel Component */
+        .room-deck { background-color: #1c1c1c; border: 1px dashed #333; border-radius: 14px; padding: 14px; margin-bottom: 24px; }
+        .deck-title { font-size: 10px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; display: block; }
+        .rooms-wrapper { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
         
-        /* Interactive clickable card badges for available game codes */
-        .room-card { background-color: #262626; border: 1px solid #404040; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-family: monospace; font-weight: 700; color: #ffffff; cursor: pointer; }
-        .no-rooms { font-size: 11px; color: #525252; font-style: italic; }
+        /* Interactive Click-to-Autofill Badges */
+        .room-card { background-color: #262626; border: 1px solid #404040; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-family: monospace; font-weight: 700; color: #ffffff; cursor: pointer; transition: background-color 0.1s; }
+        .room-card:active { background-color: #059669; }
+        .status-msg { font-size: 11px; color: #737373; font-style: italic; }
         
-        /* Action Buttons Core Styles */
-        .btn { display: block; width: 100%; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; border: none; cursor: pointer; text-align: center; margin-bottom: 12px; }
+        /* Action Utility Buttons */
+        .btn { display: block; width: 100%; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; border: none; cursor: pointer; text-align: center; margin-bottom: 12px; transition: transform 0.1s; }
+        .btn:active { transform: scale(0.98); }
         .btn-primary { background-color: #ffffff; color: #000000; }
         .btn-secondary { background-color: #222222; color: #d4d4d4; border: 1px solid #333333; }
         .btn-danger { background-color: #ef4444; color: #ffffff; }
+        .btn-small { padding: 8px 12px; font-size: 11px; width: auto; display: inline-block; margin-bottom: 0; background-color: #262626; color: #a3a3a3; border: 1px solid #333; }
         
-        /* Header Player Meta Badges */
+        /* Header Room Badges */
         .meta-container { display: flex; gap: 12px; justify-content: center; margin-bottom: 24px; }
         .badge { background-color: #222; border: 1px solid #333; padding: 6px 14px; border-radius: 20px; font-family: monospace; font-size: 12px; color: #a3a3a3; }
         
-        /* Mechanical 3D Response Buzzer Setup */
+        /* 3D Response Buzzer Matrix */
         .buzzer-wrapper { display: flex; justify-content: center; align-items: center; height: 280px; }
         .buzzer-btn { width: 200px; height: 200px; border-radius: 50%; font-size: 22px; font-weight: 800; text-transform: uppercase; border: none; color: #ffffff; cursor: pointer; outline: none; transition: all 0.1s; }
         
-        /* Mechanical Red Button State */
+        /* Mechanical Red Buzzer State */
         .buzzer-red { background-color: #dc2626; border-bottom: 12px solid #991b1b; box-shadow: 0 12px 0 #991b1b, 0 20px 30px rgba(0,0,0,0.5); }
         .buzzer-red:active { transform: translateY(8px); border-bottom: 4px solid #991b1b; box-shadow: 0 4px 0 #991b1b, 0 10px 15px rgba(0,0,0,0.3); }
         
         /* Lockout Green Pressed State */
         .buzzer-green { background-color: #059669; border-bottom: 12px solid #047857; box-shadow: 0 12px 0 #047857, 0 20px 30px rgba(0,0,0,0.4); pointer-events: none; }
         
-        /* Real-time Leaderboard Entry list row fields */
+        /* Real-time Admin Leaderboard Entries */
         .leaderboard-list { max-height: 260px; overflow-y: auto; }
         .row-entry { display: flex; justify-content: space-between; align-items: center; padding: 14px; background-color: #1e1e1e; border: 1px solid #2d2d2d; border-radius: 12px; margin-bottom: 8px; }
         .row-entry.winner { background-color: rgba(5, 150, 105, 0.15); border-color: #059669; color: #34d399; font-weight: bold; }
@@ -79,11 +82,15 @@
     <div id="screen-landing" class="screen active">
         <h1>QUIZ<span>BUZZER</span></h1>
         
-        <!-- Live Discovery Deck: Displays rooms that currently exist in the database -->
+        <!-- Manual Room Discovery Sub-Module Container -->
         <div class="room-deck">
-            <span class="deck-title">Active Game Rooms (Tap to Select)</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span class="deck-title" style="margin-bottom:0;">Room Discovery Panel</span>
+                <!-- Manual trigger control eliminates startup background network crashes -->
+                <button onclick="manuallyScanActiveRooms()" class="btn btn-small">Scan for Active Rooms</button>
+            </div>
             <div id="live-rooms-wrapper" class="rooms-wrapper">
-                <span class="no-rooms">Connecting to network...</span>
+                <span class="status-msg">Tap Scan to check for live game rooms.</span>
             </div>
         </div>
 
@@ -99,7 +106,7 @@
         <button onclick="navigateGame(true)" class="btn btn-secondary">Host as Admin</button>
     </div>
 
-    <!-- SCREEN 2: PLAYER BUZZER INTERFACE VIEW -->
+    <!-- SCREEN 2: PLAYER BUZZER VIEW -->
     <div id="screen-player" class="screen">
         <div class="meta-container">
             <div class="badge">ROOM: <strong id="p-room">-</strong></div>
@@ -110,7 +117,7 @@
         </div>
     </div>
 
-    <!-- SCREEN 3: HOST ADMIN FEEDBACK CONTROL VIEW -->
+    <!-- SCREEN 3: HOST ADMIN CONTROL VIEW -->
     <div id="screen-admin" class="screen" style="max-width: 500px;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 1px solid #262626; padding-bottom: 16px;">
             <div>
@@ -127,9 +134,9 @@
         <button onclick="deleteEntireRoom()" class="btn btn-danger" style="font-size:14px; padding:12px; margin-top:20px;">Close & Delete Room</button>
     </div>
 
-    <!-- CLIENT LOGIC ENGINE -->
+    <!-- MAIN CLIENT LOGIC PLATFORM -->
     <script>
-        // Production configuration settings linked directly to your Supabase project cluster
+        // Secure production database endpoints mapped to your cloud cluster
         const DB_URL = "supabase.co";
         const DB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmcHFteWZoYndxc3pkemZqdmJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MjgwNjEsImV4cCI6MjA5NDMwNDA2MX0.bm1xlejZwhtvGL-CzdozL9yaw3iksaTbe8l1re2vrCg";
         
@@ -140,93 +147,84 @@
 
         /**
          * Defensive Initializer Framework:
-         * Checks if the external Supabase file has finished installing in browser memory.
-         * If yes, it spawns the client wrapper. Returns true on success.
+         * Verifies if the external Supabase module file has bound completely to the browser profile.
+         * Spawns database instance map pointer. Returns true on clean execution.
          */
-        function safeConnectDatabase() {
-            if (client) return true; // If already connected, skip setup
+        function checkAndBindDatabaseEngine() {
+            if (client) return true;
             try {
-                if (window.supabase && window.supabase.createClient) {
-                    client = window.supabase.createClient(DB_URL, DB_KEY);
+                const targetModule = window.supabase || supabase;
+                if (targetModule && targetModule.createClient) {
+                    client = targetModule.createClient(DB_URL, DB_KEY);
                     return true;
                 }
             } catch(err) {
-                console.error("Database connection fault: ", err);
+                console.error("Database compilation barrier caught: ", err);
             }
             return false;
         }
 
-        /**
-         * Safe Boot Loop Listener:
-         * Runs automatically at page load. Instead of executing code aggressively, it checks 
-         * every 300 milliseconds to see if the library file is ready. Once ready, it unlocks 
-         * the panel and starts scanning the database table rows for existing games.
-         */
+        // Safe Load Wrapper: Runs on page paint, binding the library without aggressive loops
         window.addEventListener('DOMContentLoaded', () => {
-            let loopCounter = 0;
-            const checkLibraryStatus = setInterval(() => {
-                loopCounter++;
-                
-                if (safeConnectDatabase()) {
-                    // Success Path: Library found, shut down loop and fetch rooms
-                    clearInterval(checkLibraryStatus);
-                    fetchActiveRoomsDiscovery();
-                    
-                    // Open a real-time live channel to update card badges instantly if rooms change
-                    client.channel('discovery-tracker')
-                        .on('postgres_changes', { event: '*', schema: 'public', table: 'rooms' }, () => {
-                            fetchActiveRoomsDiscovery();
-                        })
-                        .subscribe();
-                } else if (loopCounter > 20) {
-                    // Timeout Path: Library failed to load after 6 seconds
-                    clearInterval(checkLibraryStatus);
-                    document.getElementById('live-rooms-wrapper').innerHTML = '<span class="no-rooms">Connection timeout. Refresh page.</span>';
-                }
-            }, 300);
+            checkAndBindDatabaseEngine();
         });
 
         /**
-         * Discovery Scanner:
-         * Queries your Supabase 'rooms' table and loops through existing codes to print
-         * clickable text badges on the landing view.
+         * Manual Discovery Scanner Engine:
+         * Triggered purely when your users manually press the "Scan for Active Rooms" button.
+         * Prevents background race conditions completely.
          */
-        async function fetchActiveRoomsDiscovery() {
-            if(!client) return;
-            try {
-                const { data, error } = await client.from('rooms').select('id');
-                const container = document.getElementById('live-rooms-wrapper');
-                if(!container) return;
+        async function manuallyScanActiveRooms() {
+            // Self-repair gate check: If database isn't bound yet, map it now
+            if (!checkAndBindDatabaseEngine()) {
+                return alert("Initializing connection profile. Tap the button again.");
+            }
 
+            const container = document.getElementById('live-rooms-wrapper');
+            if(!container) return;
+
+            container.innerHTML = '<span class="status-msg">Scanning database tables...</span>';
+
+            try {
+                // Fetch existing room codes directly from your Supabase table
+                const { data, error } = await client.from('rooms').select('id');
+                
                 if(error || !data || data.length === 0) {
-                    container.innerHTML = '<span class="no-rooms">No active rooms found...</span>';
+                    container.innerHTML = '<span class="status-msg" style="color:#ef4444;">No room has been created yet.</span>';
                     return;
                 }
 
-                container.innerHTML = ""; // Wipe "Connecting..." label
+                container.innerHTML = ""; // Wipe testing text layout
+                
+                // Print clickable badges with automatic loading triggers
                 data.forEach(room => {
                     const badge = document.createElement('span');
                     badge.className = 'room-card';
-                    badge.innerText = room.id;
-                    // Clicking a room badge automatically types it into the code input box
+                    badge.innerText = `${room.id} [Load Room]`;
+                    
+                    // Autofills input row field with target room token instantly when clicked
                     badge.onclick = () => {
-                        document.getElementById('room-input').value = room.id;
+                        const inputField = document.getElementById('room-input');
+                        if(inputField) {
+                            inputField.value = room.id;
+                            if (navigator.vibrate) navigator.vibrate(50); // Haptic feedback pulse
+                        }
                     };
                     container.appendChild(badge);
                 });
             } catch(e) {
-                console.log("Discovery processing exception intercepted.");
+                container.innerHTML = '<span class="status-msg" style="color:#ef4444;">Scan pipeline exception occurred.</span>';
             }
         }
 
         /**
-         * Navigation Router:
-         * Handles routing switches between landing cards, player buzzers, and admin panels.
+         * Navigation Router Controller:
+         * Manages transitions between room views based on strict entry rules.
          */
         async function navigateGame(isAdminRole) {
-            // Safety Gate check: If database is down, reject tap and print message banner
-            if(!safeConnectDatabase()) {
-                return alert("Connection loading. Tap once more.");
+            // Safety gate: If library file download failed, print message block
+            if(!checkAndBindDatabaseEngine()) {
+                return alert("Database asset missing. Please refresh the page link.");
             }
 
             const roomVal = document.getElementById('room-input').value.trim().toUpperCase();
@@ -239,7 +237,7 @@
             playerIdentity = isAdminRole ? "Admin" : userVal;
 
             if (isAdminRole) {
-                // Host Action Path: Create or update room token string in database
+                // Admin Flow: Create target game room mapping layer
                 await client.from('rooms').upsert({ id: activeRoom });
                 document.getElementById('a-room').innerText = activeRoom;
                 document.getElementById('screen-landing').style.display = 'none';
@@ -247,7 +245,7 @@
                 connectStreams();
                 renderLeaderboard();
             } else {
-                // Player Action Path: Explicit row-check confirmation match validation
+                // Player Flow: Match check query to protect against illegal code values
                 const { data, error } = await client.from('rooms').select('id').eq('id', activeRoom).maybeSingle();
                 
                 if (error || !data) {
@@ -263,41 +261,41 @@
         }
 
         /**
-         * Real-time Synchronization Streams:
-         * Mounts WebSocket channels to coordinate real-time delivery payloads across viewports.
+         * WebSockets Sync Streams pipeline:
+         * Mounts low-latency event trackers to coordinate live interactions across viewports.
          */
         function connectStreams() {
-            // Feed Channel: Monitors the 'buzzes' database table for real-time insert/delete mutations
+            // Live Feed Channel: Monitors user buzzer rows down inside the database table instance
             client.channel(`buzzes:${activeRoom}`)
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'buzzes', filter: `room_id=eq.${activeRoom}` }, (payload) => {
                     if (playerIdentity === "Admin") {
-                        renderLeaderboard(); // Re-render feed instantly if Admin
+                        renderLeaderboard(); // Re-render admin board entries sequentially
                     } else {
-                        evaluateGlobalSync(payload); // Recalculate physical button coloring states if Player
+                        evaluateGlobalSync(payload); // Change player button color parameters dynamically
                     }
                 })
                 .subscribe();
 
-            // Teardown Channel: Monitors the 'rooms' table for host eviction actions
+            // Teardown Channel: Listens for host exit deletions
             client.channel(`rooms:${activeRoom}`)
                 .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'rooms', filter: `id=eq.${activeRoom}` }, () => {
                     if (playerIdentity !== "Admin") {
                         alert("The Host has ended this session.");
-                        location.reload(); // Hard dump local states and return player to landing panel safely
+                        location.reload(); // Hard erase local variables and return player to entry console safely
                     }
                 })
                 .subscribe();
         }
 
         /**
-         * Transmission Pipeline:
-         * Logs player buzz interactions down into your Supabase database table instance.
+         * Buzz logger pipeline:
+         * Commits interactive user timestamp hits down inside the table schemas.
          */
         async function sendBuzzHit() {
             if (!canBuzz) return;
-            canBuzz = false; // Prevent double hitting locally
+            canBuzz = false; // Lock button to prevent bouncing hits
 
-            if (navigator.vibrate) navigator.vibrate(100); // Mobile engine physical kick
+            if (navigator.vibrate) navigator.vibrate(100); // Mobile mechanical click feedback
 
             await client.from('buzzes').insert({
                 room_id: activeRoom,
@@ -306,14 +304,14 @@
         }
 
         /**
-         * Universal Button Reset Interceptor:
-         * Coordinates player buttons based on incoming database instructions.
+         * Global State Syncer:
+         * Sets your green/red color frameworks on the phone devices instantly.
          */
         function evaluateGlobalSync(payload) {
             const btn = document.getElementById('buzzer-btn');
             if (!btn) return;
 
-            // Intercept flushes: If admin fires a DELETE row clear payload, unlock and return button to red
+            // Intercept clear payload: Admin wiped the board, return button to red state instantly
             if (payload.eventType === 'DELETE' || !payload.new || Object.keys(payload.new).length === 0) {
                 canBuzz = true;
                 btn.className = "buzzer-btn buzzer-red";
@@ -321,7 +319,7 @@
                 return;
             } 
             
-            // Intercept hits: If an INSERT log happens, latch button state to green lockout phase
+            // Intercept write payload: Someone hit the buzzer, lock button to green state
             if (payload.eventType === 'INSERT') {
                 canBuzz = false;
                 const winnerName = payload.new.username;
@@ -331,15 +329,15 @@
         }
 
         /**
-         * Millisecond Rendering Pipeline (Admin Dashboard View):
-         * Sorts player logs dynamically and displays structural ranking placements.
+         * Millisecond Rendering Sorting Layer (Admin View):
+         * Arranges incoming log entries cleanly down to the millisecond index.
          */
         async function renderLeaderboard() {
             const { data, error } = await client
                 .from('buzzes')
                 .select('username, buzzed_at')
                 .eq('room_id', activeRoom)
-                .order('buzzed_at', { ascending: true }); // Arrange sequential rankings cleanly down to the millisecond
+                .order('buzzed_at', { ascending: true });
 
             if (error) return;
             const container = document.getElementById('leaderboard');
@@ -350,7 +348,7 @@
                 return;
             }
 
-            container.innerHTML = ""; // Remove placeholder text
+            container.innerHTML = ""; // Remove placeholder string text
             data.forEach((entry, idx) => {
                 const item = document.createElement('div');
                 const isFirst = idx === 0;
@@ -371,8 +369,8 @@
         }
 
         /**
-         * Admin Action: Board Wipe
-         * Wipes room rows out of 'buzzes' table, automatically triggering player resets via the sync stream.
+         * Admin Action: Reset Round
+         * Deletes rows, automatically releasing player button lookouts.
          */
         async function clearBoard() {
             await client.from('buzzes').delete().eq('room_id', activeRoom);
@@ -380,5 +378,5 @@
         }
 
         /**
-         * Admin Action: Session Teardown
-         * Destroys the room ro
+         * Admin Action: Session Close
+         * Destroys room data, automatically redirecting a
