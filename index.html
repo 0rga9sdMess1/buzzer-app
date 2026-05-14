@@ -5,11 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Quiz Buzzer</title>
     
-    <!-- No external database library files are downloaded here. The code is 100% self-contained. -->
-    
-    <!-- Visual Layout Styles: Clean Nothing OS Minimalist Dark UI Theme -->
+    <!-- Self-Contained Native Scripting Layout Core. No external script downloads required. -->
     <style>
-        /* Base metrics to make sure touch targets and padding sizes layout perfectly on phone displays */
+        /* Global touch optimizations to ensure layout parameters read perfectly on Android touchscreens */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         body { background-color: #0b0b0b; color: #f5f5f5; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; overflow-x: hidden; }
         
@@ -130,9 +128,9 @@
         <button onclick="deleteEntireRoom()" class="btn btn-danger" style="font-size:14px; padding:12px; margin-top:20px;">Close & Delete Room</button>
     </div>
 
-    <!-- CORE NATIVE HTTP CHANNELS -->
+    <!-- SYSTEM WEB SERVICE CHANNELS -->
     <script>
-        /* FIXED ENDPOINT: Hardcoded the literal PostgREST API path to prevent communication failures */
+        /* FIXED: Hardcoded your explicit cluster ID domain path variables down to the core table structure */
         const API_BASE = "supabase.co";
         
         const HEADERS = {
@@ -148,8 +146,8 @@
         let activePollingInterval = null;
 
         /**
-         * Manual Room Scanner:
-         * Fetches running game codes directly using browser native HTTPS calls.
+         * Manual Discovery Scanner Engine:
+         * Intercepts table data directly over clean HTTPS fetch requests.
          */
         async function manuallyScanActiveRooms() {
             const container = document.getElementById('live-rooms-wrapper');
@@ -160,9 +158,8 @@
             try {
                 const response = await fetch(`${API_BASE}/rooms?select=id`, { method: "GET", headers: HEADERS });
                 
-                /* EXPLICIT ALERT FLAG: Checks if network channel drops connection */
                 if(!response.ok) {
-                    throw new Error(`HTTP network failure status: ${response.status}`);
+                    throw new Error(`HTTP Error Status Code: ${response.status}`);
                 }
                 
                 const data = await response.json();
@@ -189,15 +186,14 @@
                     container.appendChild(badge);
                 });
             } catch(e) {
-                /* VISUAL ALERT POPUP */
-                alert("Room Scan Action Crashed! Detail: " + e.message);
+                alert("Room Scan Action Failed! Error Detail: " + e.message);
                 container.innerHTML = '<span class="status-msg" style="color:#ef4444;">Scan pipeline offline.</span>';
             }
         }
 
         /**
          * Navigation Interface Router:
-         * FIXED: Moves views instantly to prevent freezes, then executes network tasks in the background.
+         * Transitions views locally immediately, then writes rows to the background thread seamlessly.
          */
         async function navigateGame(isAdminRole) {
             const roomVal = document.getElementById('room-input').value.trim().toUpperCase();
@@ -210,7 +206,7 @@
             playerIdentity = isAdminRole ? "Admin" : userVal;
 
             if (isAdminRole) {
-                /* SUCCESS PATH: Instantly transition admin screen locally */
+                /* SUCCESS PATH: Shift UI views locally first to keep application highly responsive */
                 document.getElementById('screen-landing').style.display = 'none';
                 document.getElementById('a-room').innerText = activeRoom;
                 document.getElementById('screen-admin').style.display = 'block';
@@ -222,18 +218,18 @@
                         body: JSON.stringify({ id: activeRoom })
                     });
                     
-                    if(!response.ok) throw new Error(`HTTP Status ${response.status}`);
+                    if(!response.ok) throw new Error(`HTTP Status Code: ${response.status}`);
 
                     renderLeaderboard();
                     activePollingInterval = setInterval(renderLeaderboard, 1500);
                 } catch(err) {
-                    alert("Database write error logged: " + err.message);
+                    alert("Admin Cloud Registry Error: " + err.message);
                 }
             } else {
                 try {
                     const response = await fetch(`${API_BASE}/rooms?id=eq.${activeRoom}&select=id`, { method: "GET", headers: HEADERS });
                     
-                    if(!response.ok) throw new Error(`HTTP Status ${response.status}`);
+                    if(!response.ok) throw new Error(`HTTP Status Code: ${response.status}`);
                     
                     const roomsList = await response.json();
 
@@ -241,7 +237,7 @@
                         return alert("This room does not exist yet. Please wait for the host to create it.");
                     }
 
-                    /* SUCCESS PATH: Instantly transition player screen locally */
+                    /* SUCCESS PATH: Shift UI view instantly to display the red quiz buzzer */
                     document.getElementById('screen-landing').style.display = 'none';
                     document.getElementById('p-room').innerText = activeRoom;
                     document.getElementById('p-name').innerText = playerIdentity;
@@ -249,7 +245,7 @@
                     
                     activePollingInterval = setInterval(checkPlayerGlobalStateSync, 1500);
                 } catch(err) {
-                    alert("Guest Join Network Failure! Detail: " + err.message);
+                    alert("Guest Join Validation Failure! Detail: " + err.message);
                 }
             }
         }
@@ -264,7 +260,6 @@
             if (navigator.vibrate) navigator.vibrate(100); 
 
             try {
-                // Change button style locally first to maintain instant responsiveness
                 const btn = document.getElementById('buzzer-btn');
                 if(btn) {
                     btn.className = "buzzer-btn buzzer-green";
@@ -277,16 +272,16 @@
                     body: JSON.stringify({ room_id: activeRoom, username: playerIdentity })
                 });
                 
-                if(!response.ok) throw new Error(`HTTP Status ${response.status}`);
+                if(!response.ok) throw new Error(`HTTP Status Code: ${response.status}`);
             } catch(e) {
                 canBuzz = true;
-                alert("Buzzer Data Sync Failure! Detail: " + e.message);
+                alert("Buzzer Signal Sync Drop! Detail: " + e.message);
             }
         }
 
         /**
          * Player Synchronization Loop Engine:
-         * Regularly checks database rows to track if admin reset board or closed session.
+         * Regularly polls table layers to sync display states with admin commands.
          */
         async function checkPlayerGlobalStateSync() {
             try {
@@ -311,12 +306,12 @@
                     btn.innerText = "Press to Buzz";
                 } else {
                     canBuzz = false;
-                    const activeWinner = buzzData[0].username; // FIXED: Added strict zero indexing matching logic
+                    const activeWinner = buzzData[0].username; // FIXED: Added strict zero indexing to safely pull the single winner name properties
                     btn.className = "buzzer-btn buzzer-green";
                     btn.innerText = `${activeWinner} BUZZED!`;
                 }
             } catch(e) {
-                console.log("Sync loop waiting...");
+                console.log("Sync tracking tick cycle pending...");
             }
         }
 
@@ -355,7 +350,7 @@
                     container.appendChild(item);
                 });
             } catch(e) {
-                console.log("Leaderboard mapping sequence waiting...");
+                console.log("Leaderboard parsing loop waiting...");
             }
         }
 
@@ -379,11 +374,4 @@
             try {
                 clearInterval(activePollingInterval);
                 await fetch(`${API_BASE}/rooms?id=eq.${activeRoom}`, { method: "DELETE", headers: HEADERS });
-                location.reload();
-            } catch(e) {
-                alert("Session Close Failed: " + e.message);
-            }
-        }
-    </script>
-</body>
-</html>
+                loc
